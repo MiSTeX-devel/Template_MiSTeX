@@ -88,6 +88,7 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to HPS_SPI_CLK
 set_location_assignment PIN_AA1 -to HPS_FPGA_ENABLE
 set_location_assignment PIN_W2  -to HPS_OSD_ENABLE
 set_location_assignment PIN_U2  -to HPS_IO_ENABLE
+set_location_assignment PIN_N2  -to HPS_CORE_RESET
 
 # DEBUG
 set_location_assignment PIN_C11 -to DEBUG[0]
