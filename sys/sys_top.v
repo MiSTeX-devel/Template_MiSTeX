@@ -1397,8 +1397,10 @@ audio_out audio_out
 	.core_l(audio_l),
 	.core_r(audio_r),
 
+`ifndef MISTER_DISABLE_ALSA
 	.alsa_l(alsa_l),
 	.alsa_r(alsa_r),
+`endif
 
 	.i2s_bclk(HDMI_SCLK),
 	.i2s_lrclk(HDMI_LRCLK),
@@ -1410,6 +1412,21 @@ audio_out audio_out
 	.spdif(spdif)
 );
 
+
+`ifndef MISTER_DISABLE_ALSA
+wire aspi_sck,aspi_mosi,aspi_ss,aspi_miso;
+
+/* TODO
+cyclonev_hps_interface_peripheral_spi_master spi
+(
+	.sclk_out(aspi_sck),
+	.txd(aspi_mosi), // mosi
+	.rxd(aspi_miso), // miso
+
+	.ss_0_n(aspi_ss),
+	.ss_in_n(1)
+);
+*/
 
 wire [28:0] alsa_address;
 wire [63:0] alsa_readdata;
@@ -1437,6 +1454,7 @@ alsa alsa
 	.pcm_l(alsa_l),
 	.pcm_r(alsa_r)
 );
+`endif
 
 ///////////////////  User module connection ////////////////////////////
 
