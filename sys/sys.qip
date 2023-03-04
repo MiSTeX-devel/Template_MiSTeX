@@ -36,3 +36,5 @@ set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) p
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) pll_cfg.v ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) pll_hdmi.v ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) pll_hdmi_0002.v ]
+set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) top_crg.v ]
+

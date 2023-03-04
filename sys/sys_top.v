@@ -105,6 +105,11 @@ module sys_top
 
 	inout         SDCD_SPDIF,
 
+`ifdef USE_MCP23009
+	output        IO_SCL,
+	inout         IO_SDA,
+`endif
+
 	////////// MB LED ///////////
 	output  [7:0] LED,
 
@@ -121,45 +126,18 @@ module sys_top
 	output  [3:0] DEBUG
 );
 
-wire [3:0] PLL_CLOCKS;
+wire FPGA_CLK1_50;
+wire FPGA_CLK2_50;
+wire FPGA_CLK3_50;
+wire SPI_CLK_100;
 
-ALTPLL #(
-	.BANDWIDTH_TYPE("AUTO"),
-	.CLK0_DIVIDE_BY(4'd12),
-	.CLK0_DUTY_CYCLE(6'd50),
-	.CLK0_MULTIPLY_BY(5'd12),
-	.CLK0_PHASE_SHIFT(1'd0),
-	.CLK1_DIVIDE_BY(4'd12),
-	.CLK1_DUTY_CYCLE(6'd50),
-	.CLK1_MULTIPLY_BY(5'd12),
-	.CLK1_PHASE_SHIFT(1'd0),
-	.CLK2_DIVIDE_BY(4'd12),
-	.CLK2_DUTY_CYCLE(6'd50),
-	.CLK2_MULTIPLY_BY(5'd12),
-	.CLK2_PHASE_SHIFT(1'd0),
-	.CLK3_DIVIDE_BY(4'd12),
-	.CLK3_DUTY_CYCLE(6'd50),
-	.CLK3_MULTIPLY_BY(5'd24),
-	.CLK3_PHASE_SHIFT(1'd0),
-	.COMPENSATE_CLOCK("CLK0"),
-	.INCLK0_INPUT_FREQUENCY(24'd50000),
-	.OPERATION_MODE("NORMAL")
-) main_pll (
-	.ARESET(1'd0),
-	.CLKENA(5'd31),
-	.EXTCLKENA(4'd15),
-	.FBIN(1'd1),
+top_crg top_crg (
 	.INCLK(CLK_50),
-	.PFDENA(1'd1),
-	.PLLENA(1'd1),
-	.CLK(PLL_CLOCKS),
-	.LOCKED()
+	.FPGA_CLK1_50(FPGA_CLK1_50),
+	.FPGA_CLK2_50(FPGA_CLK2_50),
+	.FPGA_CLK3_50(FPGA_CLK3_50),
+	.SPI_CLK_100(SPI_CLK_100)
 );
-
-wire FPGA_CLK1_50 = PLL_CLOCKS[0];
-wire FPGA_CLK2_50 = PLL_CLOCKS[1];
-wire FPGA_CLK3_50 = PLL_CLOCKS[2];
-wire SPI_CLK_100  = PLL_CLOCKS[3];
 
 //////////////////////  Secondary SD  ///////////////////////////////////
 wire SD_CS, SD_CLK, SD_MOSI;
