@@ -1,0 +1,21 @@
+mainfile: mycore.sv
+
+sourcedirs:
+  - sys
+  - rtl
+
+# defines:
+
+quartus:
+  sourcefiles:
+    - mycore.sdc
+    - sys/sys_top.sdc
+    - sys/pll_hdmi_adj.vhd
+    - sys/altera_pll_reconfig_top.v
+    - sys/altera_pll_reconfig_core.v
+    - sys/pll_cfg.v
+  plls:
+    - rtl/pll_0002.v
+    - sys/pll_audio_0002.v
+    - sys/pll_hdmi_0002.v
+
