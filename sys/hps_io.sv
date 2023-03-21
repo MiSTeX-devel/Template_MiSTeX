@@ -565,6 +565,17 @@ end
 
 
 ///////////////////////////////   PS2   ///////////////////////////////
+
+reg  [7:0] kbd_data;
+reg        kbd_we;
+wire [8:0] kbd_data_host;
+reg        kbd_rd;
+
+reg  [7:0] mouse_data;
+reg        mouse_we;
+wire [8:0] mouse_data_host;
+reg        mouse_rd;
+
 generate
 	if(PS2DIV) begin
 		reg clk_ps2;
@@ -576,11 +587,6 @@ generate
 				cnt <= 0;
 			end
 		end
-
-		reg  [7:0] kbd_data;
-		reg        kbd_we;
-		wire [8:0] kbd_data_host;
-		reg        kbd_rd;
 
 		ps2_device keyboard
 		(
@@ -599,11 +605,6 @@ generate
 			.rdata(kbd_data_host),
 			.rd(kbd_rd)
 		);
-
-		reg  [7:0] mouse_data;
-		reg        mouse_we;
-		wire [8:0] mouse_data_host;
-		reg        mouse_rd;
 
 		ps2_device mouse
 		(
@@ -1023,7 +1024,7 @@ module confstr_rom #(parameter CONF_STR, STRLEN)
 	output reg [7:0] conf_byte
 );
 
-wire [7:0] rom[STRLEN];
+reg [7:0] rom[STRLEN];
 initial for(int i = 0; i < STRLEN; i++) rom[i] = CONF_STR[((STRLEN-i)*8)-1 -:8];
 always @ (posedge clk_sys) conf_byte <= rom[conf_addr];
 

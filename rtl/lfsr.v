@@ -1,16 +1,18 @@
+module lfsr (out, clk, rst);
 
-module lfsr(
-   output [N-1:0] rnd
-);
+   output reg [63:0] out;
+   input clk, rst;
 
-parameter N = 63;
+   wire feedback;
 
-lcell lc0(~(rnd[N - 1] ^ rnd[N - 3] ^ rnd[N - 4] ^ rnd[N - 6] ^ rnd[N - 10]), rnd[0]);
-generate 
-	genvar i;
-	for (i = 0; i <= N - 2; i = i + 1) begin : lcn
-		lcell lc(rnd[i], rnd[i + 1]);
-	end
-endgenerate
+   assign feedback = ~(out[63] ^ out[62] ^ out[60] ^ out[59]);
 
-endmodule
+   always @(posedge clk, posedge rst)
+   begin
+    if (rst)
+       out <= 64'b0;
+    else
+      out <= {out[62:0],feedback};
+    end
+
+ endmodule

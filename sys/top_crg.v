@@ -6,6 +6,8 @@ module top_crg (
     output SPI_CLK_100
 );
 
+
+`ifdef ALTERA
 ALTPLL #(
 	.BANDWIDTH_TYPE("AUTO"),
 	.CLK0_DIVIDE_BY(4'd12),
@@ -38,4 +40,38 @@ ALTPLL #(
     .CLK({ SPI_CLK_100, FPGA_CLK3_50, FPGA_CLK2_50, FPGA_CLK1_50 }),
     .LOCKED()
 );
+`endif
+
+`ifdef XILINX
+	wire feedback;
+	wire in_clk;
+	wire out_clk;
+
+	IBUF  ibuf_inst  (.I(INCLK), .O(in_clk));
+
+	PLLE2_ADV #(
+		.CLKFBOUT_MULT(6'd32),
+		.CLKIN1_PERIOD(20.0),
+		.CLKOUT0_DIVIDE(6'd32),
+		.CLKOUT0_PHASE(1'd0),
+		.CLKOUT1_DIVIDE(6'd16),
+		.CLKOUT1_PHASE(1'd0),
+		.DIVCLK_DIVIDE(1'd1),
+		.REF_JITTER1(0.01),
+		.STARTUP_WAIT("FALSE")
+	) PLLE2_ADV (
+		.CLKFBIN(feedback),
+		.CLKIN1(in_clk),
+		.PWRDWN(1'b0),
+		.RST(1'b0),
+		.CLKFBOUT(feedback),
+		.CLKOUT0(out_clk),
+		.CLKOUT1(SPI_CLK_100),
+		.LOCKED()
+	);
+
+	BUFG clk_bufg1 (.I(out_clk), .O(FPGA_CLK1_50));
+	BUFG clk_bufg2 (.I(out_clk), .O(FPGA_CLK2_50));
+	BUFG clk_bufg3 (.I(out_clk), .O(FPGA_CLK3_50));
+`endif
 endmodule

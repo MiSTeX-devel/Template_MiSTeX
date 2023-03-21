@@ -65,14 +65,14 @@ module f2sdram_safe_terminator #(
 
 	// Master port: connecting to Alavon-MM slave(f2sdram)
 	input                         waitrequest_master,
-	output [BURSTCOUNT_WIDTH-1:0] burstcount_master,
-	output    [ADDRESS_WITDH-1:0] address_master,
+	output reg [BURSTCOUNT_WIDTH-1:0] burstcount_master,
+	output reg    [ADDRESS_WITDH-1:0] address_master,
 	input        [DATA_WIDTH-1:0] readdata_master,
 	input                         readdatavalid_master,
-	output                        read_master,
+	output reg                       read_master,
 	output       [DATA_WIDTH-1:0] writedata_master,
-	output [BYTEENABLE_WIDTH-1:0] byteenable_master,
-	output                        write_master,
+	output reg [BYTEENABLE_WIDTH-1:0] byteenable_master,
+	output reg                       write_master,
 
 	// Slave port: connecting to Alavon-MM master(user logic)
 	output                        waitrequest_slave,
@@ -122,7 +122,7 @@ end
 * Write burst transaction observer
 */
 reg  state_write = 1'b0;
-wire next_state_write;
+reg  next_state_write;
 
 wire burst_write_start     = !state_write  && next_state_write;
 wire valid_write_data      = state_write && !waitrequest_master;

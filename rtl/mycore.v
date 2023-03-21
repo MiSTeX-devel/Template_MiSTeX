@@ -25,7 +25,7 @@ reg  [63:0] rnd_reg;
 wire  [5:0] rnd_c = {rnd_reg[0],rnd_reg[1],rnd_reg[2],rnd_reg[2],rnd_reg[2],rnd_reg[2]};
 wire [63:0] rnd;
 
-lfsr random(rnd);
+lfsr random(.out(rnd), .clk(clk), .rst(1'b0));
 
 always @(posedge clk) begin
 	if(scandouble) ce_pix <= 1;
@@ -78,7 +78,7 @@ always @(posedge clk) begin
 	if (hc == 590) HSync <= 0;
 end
 
-reg  [7:0] cos_out;
+wire [7:0] cos_out;
 wire [5:0] cos_g = cos_out[7:3]+6'd32;
 cos cos(vvc + {vc>>scandouble, 2'b00}, cos_out);
 

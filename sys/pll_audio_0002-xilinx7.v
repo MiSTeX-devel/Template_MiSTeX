@@ -1,16 +1,8 @@
 `timescale 1ns/10ps
 module  pll_audio_0002(
-
-	// interface 'refclk'
-	input wire refclk,
-
-	// interface 'reset'
-	input wire rst,
-
-	// interface 'outclk0'
+	input  wire refclk,
+	input  wire rst,
 	output wire outclk_0,
-
-	// interface 'locked'
 	output wire locked
 );
 
@@ -30,7 +22,7 @@ module  pll_audio_0002(
 		.PWRDWN(1'b0),
 		.RST(rst),
 		.CLKFBOUT(feedback),
-		.CLKOUT0(outclk0),
+		.CLKOUT0(outclk_0),
 		.LOCKED(locked)
 );
 endmodule

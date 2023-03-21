@@ -60,6 +60,7 @@ module video_mixer
 );
 
 localparam DWIDTH = HALF_DEPTH ? 3 : 7;
+localparam RINWIDTH = GAMMA && HALF_DEPTH ? 7 : DWIDTH;
 localparam DWIDTH_SD = GAMMA ? 7 : DWIDTH;
 localparam HALF_DEPTH_SD = GAMMA ? 0 : HALF_DEPTH;
 
@@ -88,15 +89,19 @@ always @(posedge CLK_VIDEO) begin
 	frz  <= frz1;
 end
 
+wire [RINWIDTH:0] R_in;
+wire [RINWIDTH:0] G_in;
+wire [RINWIDTH:0] B_in;
+
 generate
 	if(GAMMA && HALF_DEPTH) begin
-		wire [7:0] R_in  = frz ? 8'd0 : {R,R};
-		wire [7:0] G_in  = frz ? 8'd0 : {G,G};
-		wire [7:0] B_in  = frz ? 8'd0 : {B,B};
+		assign R_in = frz ? 8'd0 : {R,R};
+		assign G_in = frz ? 8'd0 : {G,G};
+		assign B_in = frz ? 8'd0 : {B,B};
 	end else begin
-		wire [DWIDTH:0] R_in = frz ? 1'd0 : R;
-		wire [DWIDTH:0] G_in = frz ? 1'd0 : G;
-		wire [DWIDTH:0] B_in = frz ? 1'd0 : B;
+		assign R_in = frz ? 1'd0 : R;
+		assign G_in = frz ? 1'd0 : G;
+		assign B_in = frz ? 1'd0 : B;
 	end
 endgenerate
 

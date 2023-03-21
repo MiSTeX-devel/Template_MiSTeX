@@ -210,7 +210,7 @@ mcp23009 mcp23009
 `endif
 
 reg btn_user, btn_osd;
-always @(posedge FPGA_CLK2_50) begin
+always @(posedge FPGA_CLK2_50) begin : user_button_block
 	integer div;
 	reg [7:0] deb_user;
 	reg [7:0] deb_osd;
@@ -294,7 +294,7 @@ spi_master spi_debug (
 	.word_out({io_fpga, io_uio, gp_out[15:0], io_dout}),
 	.start_transfer(io_strobe),
 	.clk(clk_sys),
-	.rst(reset_req),
+	.rst(reset_req)
 	);
 
 reg [15:0] cfg;
@@ -355,7 +355,7 @@ reg [12:0] arc1y = 0;
 reg [12:0] arc2x = 0;
 reg [12:0] arc2y = 0;
 
-always@(posedge clk_sys) begin
+always@(posedge clk_sys) begin : cmd_block
 	reg  [7:0] cmd;
 	reg        has_cmd;
 	reg  [7:0] cnt = 0;
@@ -748,7 +748,7 @@ reg [11:0] arx;
 reg [11:0] ary;
 reg        arxy;
 
-always @(posedge clk_vid) begin
+always @(posedge clk_vid) begin : video_calc_block
 	reg [11:0] hmini,hmaxi,vmini,vmaxi;
 	reg [11:0] wcalc,videow;
 	reg [11:0] hcalc,videoh;
@@ -872,7 +872,7 @@ wire        pal_wr;
 
 reg  [28:0] pal_addr;
 reg         pal_req = 0;
-always @(posedge clk_pal) begin
+always @(posedge clk_pal) begin : vs_block
 	reg old_vs1, old_vs2;
 
 	pal_addr <= LFB_BASE[31:3] - 29'd512;
@@ -934,7 +934,7 @@ pll_cfg pll_cfg
 );
 
 reg cfg_got = 0;
-always @(posedge clk_sys) begin
+always @(posedge clk_sys) begin : vsd_block
 	reg vsd, vsd2;
 	if(~cfg_ready || ~cfg_set) cfg_got <= cfg_set;
 	else begin
@@ -945,7 +945,7 @@ always @(posedge clk_sys) begin
 end
 
 reg cfg_ready = 0;
-always @(posedge FPGA_CLK1_50) begin
+always @(posedge FPGA_CLK1_50) begin : gotd_block
 	reg gotd = 0, gotd2 = 0;
 	reg custd = 0, custd2 = 0;
 	reg old_wait = 0;
@@ -1066,7 +1066,7 @@ reg        dv_hs, dv_vs, dv_de;
 wire [23:0] dv_data_osd;
 wire dv_hs_osd, dv_vs_osd, dv_cs_osd;
 
-always @(posedge clk_vid) begin
+always @(posedge clk_vid) begin : dv_block
 	reg [23:0] dv_d1, dv_d2;
 	reg        dv_de1, dv_de2, dv_hs1, dv_hs2, dv_vs1, dv_vs2;
 	reg [12:0] vsz, vcnt, vcnt_l, vcnt_ll;
@@ -1127,6 +1127,7 @@ cyclonev_clkselect hdmi_clk_sw
 assign hdmi_tx_clk = clk_vid;
 `endif
 
+`ifndef MISTER_DEBUG_NOHDMI
 altddio_out
 #(
 	.extend_oe_disable("OFF"),
@@ -1151,13 +1152,14 @@ hdmiclk_ddr
 	.sclr(1'b0),
 	.sset(1'b0)
 );
+`endif
 
 reg hdmi_out_hs;
 reg hdmi_out_vs;
 reg hdmi_out_de;
 reg [23:0] hdmi_out_d;
 
-always @(posedge hdmi_tx_clk) begin
+always @(posedge hdmi_tx_clk) begin : hdmi_out_block
 	reg [23:0] hdmi_dv_data;
 	reg        hdmi_dv_hs, hdmi_dv_vs, hdmi_dv_de;
 
@@ -1307,7 +1309,7 @@ csync csync_vga(clk_vid, vga_hs_osd, vga_vs_osd, vga_cs_osd);
 `endif
 
 reg video_sync = 0;
-always @(posedge clk_vid) begin
+always @(posedge clk_vid) begin : line_block
 	reg [11:0] line_cnt  = 0;
 	reg [11:0] sync_line = 0;
 	reg  [1:0] hs_cnt = 0;
@@ -1657,7 +1659,7 @@ module sync_fix
 assign sync_out = sync_in ^ pol;
 
 reg pol;
-always @(posedge clk) begin
+always @(posedge clk) begin : pol_block
 	integer pos = 0, neg = 0, cnt = 0;
 	reg s1,s2;
 
@@ -1692,7 +1694,7 @@ module csync
 assign csync = (csync_vs ^ csync_hs);
 
 reg csync_hs, csync_vs;
-always @(posedge clk) begin
+always @(posedge clk) begin : h_cnt_block
 	reg prev_hs;
 	reg [15:0] h_cnt, line_len, hs_len;
 
