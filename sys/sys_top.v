@@ -287,8 +287,9 @@ hps_interface hps_interface (
 	.reset(reset_req)
 );
 
+`ifdef DEBUG_GPOUT
 spi_master spi_debug (
-	.spi_controller__sdo(DEBUG[0]),
+	.spi_controller__sdo(DEBUG[1]),
 	.spi_controller__sck(DEBUG[2]),
 	.spi_controller__cs(DEBUG[3]),
 	.word_out({io_fpga, io_uio, gp_out[15:0], io_dout}),
@@ -296,6 +297,7 @@ spi_master spi_debug (
 	.clk(clk_sys),
 	.rst(reset_req)
 	);
+`endif
 
 reg [15:0] cfg;
 
@@ -1640,8 +1642,8 @@ emu emu
 	.UART_DSR(uart_dtr),
 
 	.USER_OUT(user_out),
-	.USER_IN(user_in)
-	//.DEBUG(DEBUG)
+	.USER_IN(user_in),
+	.DEBUG(DEBUG)
 );
 
 endmodule

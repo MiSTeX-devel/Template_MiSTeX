@@ -4,8 +4,6 @@ sourcedirs:
   - sys
   - rtl
 
-# defines:
-
 quartus:
   sourcefiles:
     - mycore.sdc

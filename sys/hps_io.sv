@@ -167,7 +167,7 @@ module hps_io #(parameter CONF_STR, CONF_STR_BRAM=1, PS2DIV=0, WIDE=0, VDNUM=1, 
 
 	// for core-specific extensions
 	inout      [35:0] EXT_BUS,
-	output     [7:0]  DEBUG
+	output     [3:0]  DEBUG
 );
 
 assign EXT_BUS[31:16] = HPS_BUS[31:16];
@@ -236,9 +236,15 @@ video_calc video_calc
 localparam STRLEN = $size(CONF_STR)>>3;
 localparam MAX_W = $clog2((32 > (STRLEN+2)) ? 32 : (STRLEN+2))-1;
 
+`ifdef XILINX
+localparam NOT_XILINX = 0;
+`else
+localparam NOT_XILINX = 1;
+`endif
+
 wire [7:0] conf_byte;
 generate
-	if(CONF_STR_BRAM) begin
+	if(CONF_STR_BRAM && NOT_XILINX) begin
 		confstr_rom #(CONF_STR, STRLEN) confstr_rom(.*, .conf_addr(byte_cnt - 1'd1));
 	end
 	else begin
@@ -261,16 +267,14 @@ reg   [3:0] sdn_ack;
 wire [15:0] disk = 16'd1 << io_din[11:8];
 
 `ifdef DEBUG_HPS_OP
-assign DEBUG[5] = io_enable;
-
 spi_master spi_debug (
-	.spi_controller__sdo(DEBUG[0]),
-	.spi_controller__sck(DEBUG[1]),
-	.spi_controller__cs(DEBUG[4]),
+	.spi_controller__sdo(DEBUG[1]),
+	.spi_controller__sck(DEBUG[2]),
+	.spi_controller__cs(DEBUG[3]),
 	.word_out({byte_cnt, io_din, io_dout}),
 	.start_transfer(io_strobe),
 	.clk(clk_sys),
-	.rst(reset),
+	.rst(reset)
 	);
 `endif
 

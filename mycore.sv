@@ -168,7 +168,9 @@ module emu
 	input   [6:0] USER_IN,
 	output  [6:0] USER_OUT,
 
-	input         OSD_STATUS
+	input         OSD_STATUS,
+
+	output     [3:0]  DEBUG
 );
 
 ///////// Default values for ports not used in this core /////////
@@ -249,7 +251,8 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.status(status),
 	.status_menumask({status[5]}),
 	
-	.ps2_key(ps2_key)
+	.ps2_key(ps2_key),
+	.DEBUG(DEBUG)
 );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
