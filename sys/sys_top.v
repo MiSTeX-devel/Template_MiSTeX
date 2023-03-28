@@ -19,10 +19,14 @@
 //
 //============================================================================
 
-module sys_top
+module sys_top #(
+    parameter DW = 128,	// DDR3 avalon data width
+    parameter AW = 28	// DDR3 avalon address width
+)
 (
 	/////////// CLOCK //////////
 	input         CLK_50,
+	input         clk_100m,
 
 `ifndef MISTER_DEBUG_NOHDMI
 	//////////// HDMI //////////
@@ -123,7 +127,18 @@ module sys_top
 	input         HPS_OSD_ENABLE,
 	input         HPS_IO_ENABLE,
 	input         HPS_CORE_RESET,
-	output  [3:0] DEBUG
+	output  [3:0] DEBUG,
+
+	/////// DDR3 ///////
+    output [AW-1:0]   ddr3_address_o,
+    output [DW/8-1:0] ddr3_byteenable_o,
+    output 		      ddr3_read_o,
+    input  [DW-1:0]   ddr3_readdata_i,
+    output [7:0] 	  ddr3_burstcount_o,
+    output 		      ddr3_write_o,
+    output [DW-1:0]   ddr3_writedata_o,
+    input 		      ddr3_waitrequest_i,
+    input 		      ddr3_readdatavalid_i
 );
 
 wire FPGA_CLK1_50;
@@ -544,8 +559,6 @@ wire reset_req = HPS_CORE_RESET;
 
 ////////////////////  SYSTEM MEMORY & SCALER  /////////////////////////
 
-wire clk_100m;
-
 wire clk_pal = clk_audio;
 
 
@@ -568,7 +581,7 @@ wire clk_hdmi  = hdmi_clk_out;
 
 ascal 
 #(
-	.RAMBASE(32'h20000000),
+	.RAMBASE(32'h40000000),
 `ifdef MISTER_SMALL_VBUF
 	.RAMSIZE(32'h00200000),
 `else
