@@ -13,10 +13,12 @@
 
 `timescale 1ps/1ps
 
+`ifdef CYCLONEV
 module altera_pll_reconfig_core
 #(
     parameter 	reconf_width       	= 64,
     parameter 	device_family       	= "Stratix V",
+    parameter 	device_family       	= "Max10",
     // MIF Streaming parameters
     parameter   RECONFIG_ADDR_WIDTH     = 6,
     parameter   RECONFIG_DATA_WIDTH     = 32,
@@ -2182,3 +2184,4 @@ module generic_lcell_comb
         end
         endgenerate
 endmodule
+`endif

@@ -25,6 +25,7 @@ module pll_cfg #(
 		input  wire [63:0] reconfig_from_pll  // reconfig_from_pll.reconfig_from_pll
 	);
 
+`ifdef CYCLONEV
 	altera_pll_reconfig_top #(
 		.device_family       ("Cyclone V"),
 		.ENABLE_MIF          (0),
@@ -48,5 +49,6 @@ module pll_cfg #(
 		.reconfig_from_pll (reconfig_from_pll), // reconfig_from_pll.reconfig_from_pll
 		.mgmt_byteenable   (4'b0000)            //       (terminated)
 	);
+`endif
 
 endmodule

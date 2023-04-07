@@ -13,6 +13,7 @@
 
 `timescale 1ps/1ps
 
+`ifdef CYCLONEV
 module altera_pll_reconfig_top
 #(
     parameter   reconf_width            = 64,
@@ -426,3 +427,4 @@ endgenerate
 
 endmodule
 
+`endif
