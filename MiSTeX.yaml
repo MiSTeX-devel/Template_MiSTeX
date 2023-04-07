@@ -15,6 +15,7 @@ quartus:
     - rtl/pll_0002.v
     - sys/pll_audio_0002.v
     - sys/pll_hdmi_0002.v
+    - sys/hdmi_config.sv
 
 vivado:
   sourcefiles:
