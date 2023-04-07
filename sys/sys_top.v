@@ -325,6 +325,7 @@ wire       direct_video = 1;
 wire       direct_video = cfg[10];
 `endif
 
+wire       dvi_mode     = cfg[7];
 wire       audio_96k    = cfg[6];
 wire       csync_en     = cfg[3];
 wire       io_osd_vga   = osd_enable & ~io_enable;
@@ -865,7 +866,7 @@ pll_hdmi_adj pll_hdmi_adj
 	.reset_na(~reset_req),
 
 	.llena(lowlat),
-	.lltune({16{cfg_done}} & lltune),
+	.lltune({16{hdmi_config_done | cfg_done}} & lltune),
 	.locked(led_locked),
 	.i_waitrequest(adj_waitrequest),
 	.i_write(adj_write),
@@ -994,10 +995,25 @@ wire cfg_ready = 1;
 
 `endif
 
-assign HDMI_I2C_SCL = hdmi_scl_en ? 1'b0 : 1'bZ;
-assign HDMI_I2C_SDA = hdmi_sda_en ? 1'b0 : 1'bZ;
+wire hdmi_config_done;
+`ifdef HARDWARE_HDMI_INIT
+hdmi_config hdmi_config
+(
+	.iCLK(FPGA_CLK1_50),
+	.iRST_N(/*cfg_ready & */ ~HDMI_TX_INT & ~cfg_done),
+	.done(hdmi_config_done),
 
-wire hdmi_scl_en, hdmi_sda_en;
+	.I2C_SCL(HDMI_I2C_SCL),
+	.I2C_SDA(HDMI_I2C_SDA),
+
+	.dvi_mode(dvi_mode),
+	.audio_96k(audio_96k),
+	.limited(hdmi_limited),
+	.ypbpr(ypbpr_en & direct_video)
+);
+`else
+assign hdmi_config_done = 1'b1;
+`endif
 
 /* TODO: later, when we have HDMI
 cyclonev_hps_interface_peripheral_i2c hdmi_i2c
@@ -1132,13 +1148,26 @@ assign {dv_data_osd, dv_hs_osd, dv_vs_osd, dv_cs_osd } = {vga_data_osd, vga_hs_o
 
 wire hdmi_tx_clk;
 `ifndef MISTER_DEBUG_NOHDMI
-cyclonev_clkselect hdmi_clk_sw
-( 
+`ifdef CYCLONEV
+cyclonev_clkselect hdmi_clk_sw ( 
 	.clkselect({1'b1, ~vga_fb & direct_video}),
 	.inclk({clk_vid, hdmi_clk_out, 2'b00}),
 	.outclk(hdmi_tx_clk)
 );
 `else
+assign hdmi_tx_clk = hdmi_clk_out;
+/*
+// This should actually happen here, but on Max10,
+// quartus demands that both inputs come from the same PLL
+// and that is impossible to achieve, so we don't support direct_video
+altclkctrl hdmi_clk_sw (
+	.clkselect({1'b1, ~vga_fb & direct_video}),
+	.inclk({alt_clk_vid, hdmi_clk_out, 2'b00}),
+	.outclk(hdmi_tx_clk)
+);
+*/
+`endif
+`else // MISTER_DEBUG_NOHDMI
 assign hdmi_tx_clk = clk_vid;
 `endif
 
