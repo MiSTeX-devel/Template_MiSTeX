@@ -175,22 +175,19 @@ module  pll_hdmi_0002(
 		.refclk	(refclk),
 		.reconfig_from_pll	(reconfig_from_pll)
 	);
-`else
-
-wire if_clk;
-wire pll1_locked, pll2_locked;
+`else // not CYCLONEV
 
 // TODO: make it reconfigurable
 ALTPLL #(
 	.BANDWIDTH_TYPE("AUTO"),
-	.CLK0_DIVIDE_BY(7'd10),
+	.CLK0_DIVIDE_BY(7'd17),   // this is slightly inaccurate for getting 74.25MHz
 	.CLK0_DUTY_CYCLE(6'd50),
-	.CLK0_MULTIPLY_BY(8'd33),
+	.CLK0_MULTIPLY_BY(8'd25), // but it works
 	.CLK0_PHASE_SHIFT(1'd0),
 	.COMPENSATE_CLOCK("CLK0"),
 	.INCLK0_INPUT_FREQUENCY(24'd20000),
 	.OPERATION_MODE("NORMAL")
-) ALTPLL_HDMI_1 (
+) ALTPLL_HDMI (
 	.ARESET(1'd0),
 	.CLKENA(5'd31),
 	.EXTCLKENA(4'd15),
@@ -198,33 +195,10 @@ ALTPLL #(
 	.INCLK(refclk),
 	.PFDENA(1'd1),
 	.PLLENA(1'd1),
-	.CLK({if_clk}),
-	.LOCKED(pll1_locked)
-);
-
-ALTPLL #(
-	.BANDWIDTH_TYPE("AUTO"),
-	.CLK0_DIVIDE_BY(7'd20),
-	.CLK0_DUTY_CYCLE(6'd50),
-	.CLK0_MULTIPLY_BY(8'd9),
-	.CLK0_PHASE_SHIFT(1'd0),
-	.COMPENSATE_CLOCK("CLK1"),
-	.INCLK0_INPUT_FREQUENCY(15'd6060),
-	.OPERATION_MODE("NORMAL")
-) ALTPLL_HDMI_2 (
-	.ARESET(1'd0),
-	.CLKENA(5'd31),
-	.EXTCLKENA(4'd15),
-	.FBIN(1'd1),
-	.INCLK(if_clk),
-	.PFDENA(1'd1),
-	.PLLENA(1'd1),
 	.CLK({outclk_0}),
-	.LOCKED(pll2_locked)
+	.LOCKED(locked)
 );
 
-assign locked = pll1_locked & pll2_locked;
-
-`endif
+`endif // CYCLONEV
 endmodule
 

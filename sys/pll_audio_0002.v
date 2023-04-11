@@ -14,7 +14,6 @@ module  pll_audio_0002(
 	output wire locked
 );
 
-`ifdef CYCLONEV
 	altera_pll #(
 		.fractional_vco_multiplier("true"),
 		.reference_clock_frequency("50.0 MHz"),
@@ -33,6 +32,5 @@ module  pll_audio_0002(
 		.fbclk	(1'b0),
 		.refclk	(refclk)
 	);
-`endif
 endmodule
 

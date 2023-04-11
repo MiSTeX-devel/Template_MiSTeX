@@ -26,7 +26,9 @@ module sys_top #(
 (
 	/////////// CLOCK //////////
 	input         CLK_50,
-	input         clk_100m,
+	`ifdef CLK_100_EXT
+	input         CLK_100,
+	`endif
 
 `ifndef MISTER_DEBUG_NOHDMI
 	//////////// HDMI //////////
@@ -130,6 +132,7 @@ module sys_top #(
 	output  [3:0] DEBUG,
 
 	/////// DDR3 ///////
+	input             ddr3_clk_i,
     output [AW-1:0]   ddr3_address_o,
     output [DW/8-1:0] ddr3_byteenable_o,
     output 		      ddr3_read_o,
@@ -144,15 +147,24 @@ module sys_top #(
 wire FPGA_CLK1_50;
 wire FPGA_CLK2_50;
 wire FPGA_CLK3_50;
-wire SPI_CLK_100;
+`ifndef CLK_100_EXT
+wire CLK_100;
+`endif
 
 top_crg top_crg (
 	.INCLK(CLK_50),
 	.FPGA_CLK1_50(FPGA_CLK1_50),
 	.FPGA_CLK2_50(FPGA_CLK2_50),
-	.FPGA_CLK3_50(FPGA_CLK3_50),
-	.SPI_CLK_100(SPI_CLK_100)
-);
+	.FPGA_CLK3_50(FPGA_CLK3_50)
+	`ifndef CYCLONEV
+	,
+	.clk_audio(clk_audio)
+	`endif
+	`ifndef CLK_100_EXT
+	,
+	.SPI_CLK_100(CLK_100)
+	`endif
+	);
 
 //////////////////////  Secondary SD  ///////////////////////////////////
 wire SD_CS, SD_CLK, SD_MOSI;
@@ -297,7 +309,7 @@ hps_interface hps_interface (
 	.osd_enable(HPS_OSD_ENABLE),
 	.io_enable(HPS_IO_ENABLE),
 
-	.sync_clk(SPI_CLK_100),
+	.sync_clk(CLK_100),
 	.sys_clk(clk_sys),
 	.reset(reset_req)
 );
@@ -562,27 +574,20 @@ wire reset_req = HPS_CORE_RESET;
 
 wire clk_pal = clk_audio;
 
-
-wire  [27:0] vbuf_address;
-wire   [7:0] vbuf_burstcount;
-wire         vbuf_waitrequest;
-wire [127:0] vbuf_readdata;
-wire         vbuf_readdatavalid;
-wire         vbuf_read;
-wire [127:0] vbuf_writedata;
-wire  [15:0] vbuf_byteenable;
-wire         vbuf_write;
-
 wire  [23:0] hdmi_data;
 wire         hdmi_vs, hdmi_hs, hdmi_de, hdmi_vbl, hdmi_brd;
 wire         freeze;
 
 `ifndef MISTER_DEBUG_NOHDMI
-wire clk_hdmi  = hdmi_clk_out;
+`ifndef SKIP_ASCAL
+wire clk_hdmi = hdmi_clk_out;
+`else
+wire clk_hdmi = clk_ihdmi;
+`endif
 
 ascal 
 #(
-	.RAMBASE(32'h40000000),
+	.RAMBASE(32'h00000000),
 `ifdef MISTER_SMALL_VBUF
 	.RAMSIZE(32'h00200000),
 `else
@@ -602,8 +607,8 @@ ascal
 	.DOWNSCALE_NN("true"),
 `endif
 	.FRAC(8),
-	.N_DW(128),
-	.N_AW(28)
+	.N_DW(DW),
+	.N_AW(AW)
 )
 ascal
 (
@@ -681,16 +686,16 @@ ascal
 	.o_fb_base        (FB_BASE),
 	.o_fb_stride      (FB_STRIDE),
 
-	.avl_clk          (clk_100m),
-	.avl_waitrequest  (vbuf_waitrequest),
-	.avl_readdata     (vbuf_readdata),
-	.avl_readdatavalid(vbuf_readdatavalid),
-	.avl_burstcount   (vbuf_burstcount),
-	.avl_writedata    (vbuf_writedata),
-	.avl_address      (vbuf_address),
-	.avl_write        (vbuf_write),
-	.avl_read         (vbuf_read),
-	.avl_byteenable   (vbuf_byteenable)
+	.avl_clk          (ddr3_clk_i),
+	.avl_waitrequest  (ddr3_waitrequest_i),
+	.avl_readdata     (ddr3_readdata_i),
+	.avl_readdatavalid(ddr3_readdatavalid_i),
+	.avl_burstcount   (ddr3_burstcount_o),
+	.avl_writedata    (ddr3_writedata_o),
+	.avl_address      (ddr3_address_o),
+	.avl_write        (ddr3_write_o),
+	.avl_read         (ddr3_read_o),
+	.avl_byteenable   (ddr3_byteenable_o)
 );
 `endif
 
@@ -1052,11 +1057,19 @@ shadowmask HDMI_shadowmask
 	.cmd_wr(shadowmask_wr),
 	.cmd_in(shadowmask_data),
 
+`ifndef SKIP_ASCAL
 	.din(dis_output ? 24'd0 : hdmi_data),
 	.hs_in(hdmi_hs),
 	.vs_in(hdmi_vs),
 	.de_in(hdmi_de),
 	.brd_in(hdmi_brd),
+`else
+	.din(dis_output ? 24'd0 : {hr_out, hg_out, hb_out}),
+	.hs_in(hhs_fix),
+	.vs_in(hvs_fix),
+	.de_in(hde_emu),
+	.brd_in(1'b1),
+`endif
 	.enable(~LFB_EN),
 
 	.dout(hdmi_data_mask),
@@ -1155,7 +1168,12 @@ cyclonev_clkselect hdmi_clk_sw (
 	.outclk(hdmi_tx_clk)
 );
 `else
+`ifndef SKIP_ASCAL
 assign hdmi_tx_clk = hdmi_clk_out;
+`else
+assign hdmi_tx_clk = clk_ihdmi;
+`endif
+
 /*
 // This should actually happen here, but on Max10,
 // quartus demands that both inputs come from the same PLL
@@ -1350,7 +1368,7 @@ csync csync_vga(clk_vid, vga_hs_osd, vga_vs_osd, vga_cs_osd);
 	assign VGA_R  = (VGA_EN | SW[3]) ? 6'bZZZZZZ :   (vga_fb | vga_scaler) ? vgas_o[23:18]                               : VGA_DISABLE ? 6'd0 : vga_o[23:18];
 	assign VGA_G  = (VGA_EN | SW[3]) ? 6'bZZZZZZ :   (vga_fb | vga_scaler) ? vgas_o[15:10]                               : VGA_DISABLE ? 6'd0 : vga_o[15:10];
 	assign VGA_B  = (VGA_EN | SW[3]) ? 6'bZZZZZZ :   (vga_fb | vga_scaler) ? vgas_o[7:2]                                 : VGA_DISABLE ? 6'd0 : vga_o[7:2]  ;
-`endif
+`endif // ifndef MISTER_DUAL_SDRAM
 
 reg video_sync = 0;
 always @(posedge clk_vid) begin : line_block
@@ -1392,12 +1410,14 @@ assign SDCD_SPDIF =(SW[3] & ~spdif) ? 1'b0 : 1'bZ;
 assign HDMI_MCLK = clk_audio;
 wire clk_audio;
 
+`ifndef CRG_AUDIO_CLK
 pll_audio pll_audio
 (
 	.refclk(FPGA_CLK3_50),
 	.rst(0),
 	.outclk_0(clk_audio)
 );
+`endif
 
 wire spdif;
 audio_out audio_out
@@ -1568,7 +1588,7 @@ emu emu
 	.CLK_50M(FPGA_CLK2_50),
 	.RESET(reset_req),
 	.HPS_BUS({fb_en, sl, f1, HDMI_TX_VS, 
-				 clk_100m, clk_ihdmi,
+				 CLK_100, clk_ihdmi,
 				 ce_hpix, hde_emu, hhs_fix, hvs_fix, 
 				 io_wait, clk_sys, io_fpga, io_uio, io_strobe, io_wide, io_din, io_dout}),
 
