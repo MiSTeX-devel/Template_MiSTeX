@@ -1,16 +1,8 @@
 `timescale 1ns/10ps
-module  pll_0002(
-
-	// interface 'refclk'
-	input wire refclk,
-
-	// interface 'reset'
-	input wire rst,
-
-	// interface 'outclk0'
+module pll_0002 (
+	input  wire refclk,
+	input  wire rst,
 	output wire outclk_0,
-
-	// interface 'locked'
 	output wire locked
 );
 
