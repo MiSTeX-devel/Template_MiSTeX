@@ -572,6 +572,12 @@ wire reset_req = HPS_CORE_RESET;
 
 ////////////////////  SYSTEM MEMORY & SCALER  /////////////////////////
 
+`ifndef ASCAL_HRES
+	localparam scaler_hres = 2048;
+`else
+	localparam scaler_hres = `ASCAL_HRES;
+`endif
+
 wire clk_pal = clk_audio;
 
 wire  [23:0] hdmi_data;
@@ -607,6 +613,9 @@ ascal
 	.DOWNSCALE_NN("true"),
 `endif
 	.FRAC(8),
+	.OHRES(scaler_hres),
+	.IHRES(scaler_hres),
+	.N_BURST(64),
 	.N_DW(DW),
 	.N_AW(AW)
 )
@@ -1253,6 +1262,8 @@ assign HDMI_TX_D  = hdmi_out_d;
 
 wire [23:0] vga_data_sl;
 wire        vga_de_sl, vga_ce_sl, vga_vs_sl, vga_hs_sl;
+
+`ifndef DISABLE_VGA
 scanlines #(0) VGA_scanlines
 (
 	.clk(clk_vid),
@@ -1270,9 +1281,12 @@ scanlines #(0) VGA_scanlines
 	.de_out(vga_de_sl),
 	.ce_out(vga_ce_sl)
 );
+`endif
 
 wire [23:0] vga_data_osd;
 wire        vga_vs_osd, vga_hs_osd;
+
+`ifndef DISABLE_VGA
 osd vga_osd
 (
 	.clk_sys(clk_sys),
@@ -1359,7 +1373,7 @@ csync csync_vga(clk_vid, vga_hs_osd, vga_vs_osd, vga_cs_osd);
 	assign {vga_o, vga_hs, vga_vs, vga_cs } = ~yc_en ? {vga_o_t, vga_hs_t, vga_vs_t, vga_cs_t } : {yc_o, yc_hs, yc_vs, yc_cs };
 `else
 	assign {vga_o, vga_hs, vga_vs, vga_cs } =  {vga_o_t, vga_hs_t, vga_vs_t, vga_cs_t } ;
-`endif
+`endif // MISTER_DISABLE_YC
 
 	wire cs1 = (vga_fb | vga_scaler) ? vgas_cs : vga_cs;
 	assign VGA_EN = 0;
@@ -1394,6 +1408,7 @@ always @(posedge clk_vid) begin : line_block
 
 	if(de_emu) hs_cnt <= 0;
 end
+`endif // DISABLE_VGA
 
 /////////////////////////  Audio output  ////////////////////////////////
 
@@ -1601,8 +1616,10 @@ emu emu
 	.VGA_F1(f1),
 	.VGA_SCALER(vga_force_scaler),
 
+`ifndef DISBALE_VGA
 `ifndef MISTER_DUAL_SDRAM
 	.VGA_DISABLE(VGA_DISABLE),
+`endif
 `endif
 
 	.HDMI_WIDTH(direct_video ? 12'd0 : hdmi_width),
@@ -1705,7 +1722,9 @@ emu emu
 
 	.USER_OUT(user_out),
 	.USER_IN(user_in),
+`ifdef EMU_DEBUG
 	.DEBUG(DEBUG)
+`endif
 );
 
 endmodule

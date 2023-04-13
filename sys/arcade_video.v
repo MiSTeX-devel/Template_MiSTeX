@@ -108,7 +108,12 @@ endgenerate
 
 assign VGA_SL  = sl[1:0];
 wire [2:0] sl = fx ? fx - 1'd1 : 3'd0;
-wire scandoubler = fx || forced_scandoubler;
+
+`ifdef NO_SCANDOUBLER
+	wire scandoubler = 1'b0;
+`else
+	wire scandoubler = fx || forced_scandoubler;
+`endif
 
 video_mixer #(.LINE_LENGTH(WIDTH+4), .HALF_DEPTH(DW!=24), .GAMMA(GAMMA)) video_mixer
 (
