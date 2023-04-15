@@ -27,8 +27,8 @@ module video_mixer
 	output reg       CE_PIXEL,  // output pixel clock enable
 
 	input            ce_pix,    // input pixel clock or clock_enable
-
 	input            scandoubler,
+
 	input            hq2x, 	    // high quality 2x scaling
 
 	inout     [21:0] gamma_bus,
@@ -146,6 +146,7 @@ wire [DWIDTH_SD:0] G_sd;
 wire [DWIDTH_SD:0] B_sd;
 wire hs_sd, vs_sd, hb_sd, vb_sd, ce_pix_sd;
 
+`ifndef NO_SCANDOUBLER
 scandoubler #(.LENGTH(LINE_LENGTH), .HALF_DEPTH(HALF_DEPTH_SD)) sd
 (
 	.clk_vid(CLK_VIDEO),
@@ -169,10 +170,17 @@ scandoubler #(.LENGTH(LINE_LENGTH), .HALF_DEPTH(HALF_DEPTH_SD)) sd
 	.g_out(G_sd),
 	.b_out(B_sd)
 );
+`endif
 
+`ifndef NO_SCANDOUBLER
 wire [DWIDTH_SD:0] rt = (scandoubler ? R_sd : R_gamma);
 wire [DWIDTH_SD:0] gt = (scandoubler ? G_sd : G_gamma);
 wire [DWIDTH_SD:0] bt = (scandoubler ? B_sd : B_gamma);
+`else
+wire [DWIDTH_SD:0] rt = R_gamma;
+wire [DWIDTH_SD:0] gt = G_gamma;
+wire [DWIDTH_SD:0] bt = B_gamma;
+`endif
 
 always @(posedge CLK_VIDEO) begin
 	reg [7:0] r,g,b;
