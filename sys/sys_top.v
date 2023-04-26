@@ -1721,8 +1721,9 @@ emu emu
 	.UART_DSR(uart_dtr),
 
 	.USER_OUT(user_out),
-	.USER_IN(user_in),
+	.USER_IN(user_in)
 `ifdef EMU_DEBUG
+	,
 	.DEBUG(DEBUG)
 `endif
 );
