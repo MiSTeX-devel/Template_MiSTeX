@@ -21,7 +21,8 @@
 
 module sys_top #(
     parameter DW = 128,	// DDR3 avalon data width
-    parameter AW = 28	// DDR3 avalon address width
+    parameter AW = 28,	// DDR3 avalon address width
+	parameter ASCAL_RAMBASE = 32'h00000000
 )
 (
 	/////////// CLOCK //////////
@@ -593,7 +594,7 @@ wire clk_hdmi = clk_ihdmi;
 
 ascal 
 #(
-	.RAMBASE(32'h00000000),
+	.RAMBASE(ASCAL_RAMBASE),
 `ifdef MISTER_SMALL_VBUF
 	.RAMSIZE(32'h00200000),
 `else
