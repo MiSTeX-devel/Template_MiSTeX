@@ -50,5 +50,9 @@ module pll_cfg #(
 		.mgmt_byteenable   (4'b0000)            //       (terminated)
 	);
 `endif
-
+`ifdef XILINX
+	assign mgmt_waitrequest = 1'b0;
+	assign mgmt_readdata    = 32'b0;
+	assign reconfig_to_pll  = 64'b0;
+`endif
 endmodule

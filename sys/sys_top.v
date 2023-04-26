@@ -1199,6 +1199,7 @@ assign hdmi_tx_clk = clk_vid;
 `endif
 
 `ifndef MISTER_DEBUG_NOHDMI
+`ifdef ALTERA
 altddio_out
 #(
 	.extend_oe_disable("OFF"),
@@ -1223,7 +1224,20 @@ hdmiclk_ddr
 	.sclr(1'b0),
 	.sset(1'b0)
 );
+`endif // ALTERA
+`ifdef XILINX
+ODDR #(.DDR_CLK_EDGE("OPPOSITE_EDGE"),
+	   .INIT(1'b0),
+	   .SRTYPE("SYNC")
+) ODDR_inst (
+	.C(hdmi_tx_clk),
+	.Q(HDMI_TX_CLK),
+	.CE(1'b1), // 1-bit clock enable input
+	.D1(0'b0), // 1-bit data input (positive edge)
+	.D2(0'b1) // 1-bit data input (negative edge)
+);
 `endif
+`endif // MISTER_DEBUG_NOHDMI
 
 reg hdmi_out_hs;
 reg hdmi_out_vs;
