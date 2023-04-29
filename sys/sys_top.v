@@ -1059,6 +1059,7 @@ wire        hdmi_de_mask, hdmi_vs_mask, hdmi_hs_mask;
 reg [15:0] shadowmask_data;
 reg        shadowmask_wr = 0;
 
+`ifndef SKIP_SHADOWMASK
 shadowmask HDMI_shadowmask
 (
 	.clk(clk_hdmi),
@@ -1087,6 +1088,7 @@ shadowmask HDMI_shadowmask
 	.vs_out(hdmi_vs_mask),
 	.de_out(hdmi_de_mask)
 );
+`endif // SKIP_SHADOWMASK
 
 wire [23:0] hdmi_data_osd;
 wire        hdmi_de_osd, hdmi_vs_osd, hdmi_hs_osd;
@@ -1100,11 +1102,17 @@ osd hdmi_osd
 	.io_din(io_din),
 
 	.clk_video(clk_hdmi),
+`ifndef SKIP_SHADOWMASK
 	.din(hdmi_data_mask),
 	.hs_in(hdmi_hs_mask),
 	.vs_in(hdmi_vs_mask),
 	.de_in(hdmi_de_mask),
-
+`else // SKIP_SHADOWMASK
+	.din(dis_output ? 24'd0 : hdmi_data),
+	.hs_in(hdmi_hs),
+	.vs_in(hdmi_vs),
+	.de_in(hdmi_de),
+`endif // SKIP_SHADOWMASK
 	.dout(hdmi_data_osd),
 	.hs_out(hdmi_hs_osd),
 	.vs_out(hdmi_vs_osd),
@@ -1166,7 +1174,9 @@ end
 `ifndef MISTER_DISABLE_YC
 assign {dv_data_osd, dv_hs_osd, dv_vs_osd, dv_cs_osd } = ~yc_en ? {vga_data_osd, vga_hs_osd, vga_vs_osd, vga_cs_osd } : {yc_o, yc_hs, yc_vs, yc_cs };
 `else
+`ifndef DISABLE_VGA
 assign {dv_data_osd, dv_hs_osd, dv_vs_osd, dv_cs_osd } = {vga_data_osd, vga_hs_osd, vga_vs_osd, vga_cs_osd };
+`endif
 `endif
 
 wire hdmi_tx_clk;

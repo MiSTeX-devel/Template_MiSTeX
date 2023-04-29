@@ -177,6 +177,7 @@ always @(posedge clk, posedge reset) begin : dly_block
 end
 
 wire [15:0] acl, acr;
+`ifndef SKIP_IIR_FILTER
 IIR_filter #(.use_params(0)) IIR_filter
 (
 	.clk(clk),
@@ -198,6 +199,10 @@ IIR_filter #(.use_params(0)) IIR_filter
 	.output_l(acl),
 	.output_r(acr)
 );
+`else // SKIP_IIR_FILTER
+	assign acl = {~is_signed ^ cl[15], cl[14:0]};
+	assign acr = {~is_signed ^ cr[15], cr[14:0]};
+`endif // SKIP_IIR_FILTER
 
 wire [15:0] adl;
 DC_blocker dcb_l
