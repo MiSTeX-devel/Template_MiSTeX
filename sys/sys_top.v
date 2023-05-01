@@ -157,7 +157,7 @@ top_crg top_crg (
 	.FPGA_CLK1_50(FPGA_CLK1_50),
 	.FPGA_CLK2_50(FPGA_CLK2_50),
 	.FPGA_CLK3_50(FPGA_CLK3_50)
-	`ifndef CYCLONEV
+	`ifdef CRG_AUDIO_CLK
 	,
 	.clk_audio(clk_audio)
 	`endif
@@ -1408,6 +1408,7 @@ csync csync_vga(clk_vid, vga_hs_osd, vga_vs_osd, vga_cs_osd);
 	assign VGA_G  = (VGA_EN | SW[3]) ? 6'bZZZZZZ :   (vga_fb | vga_scaler) ? vgas_o[15:10]                               : VGA_DISABLE ? 6'd0 : vga_o[15:10];
 	assign VGA_B  = (VGA_EN | SW[3]) ? 6'bZZZZZZ :   (vga_fb | vga_scaler) ? vgas_o[7:2]                                 : VGA_DISABLE ? 6'd0 : vga_o[7:2]  ;
 `endif // ifndef MISTER_DUAL_SDRAM
+`endif // DISABLE_VGA
 
 reg video_sync = 0;
 always @(posedge clk_vid) begin : line_block
@@ -1433,7 +1434,6 @@ always @(posedge clk_vid) begin : line_block
 
 	if(de_emu) hs_cnt <= 0;
 end
-`endif // DISABLE_VGA
 
 /////////////////////////  Audio output  ////////////////////////////////
 
