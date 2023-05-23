@@ -31,6 +31,9 @@ module sys_top #(
 	input         CLK_100,
 	`endif
 
+	output        CLK_VIDEO,
+	output        CLK_EMU_DDRAM,
+
 `ifndef MISTER_DEBUG_NOHDMI
 	//////////// HDMI //////////
 	output        HDMI_I2C_SCL,
@@ -135,6 +138,8 @@ module sys_top #(
 	output  [3:0] DEBUG,
 
 	/////// DDR3 ///////
+
+	// Scaler port
 	input             ddr3_clk_i,
     output [AW-1:0]   ddr3_address_o,
     output [DW/8-1:0] ddr3_byteenable_o,
@@ -144,7 +149,19 @@ module sys_top #(
     output 		      ddr3_write_o,
     output [DW-1:0]   ddr3_writedata_o,
     input 		      ddr3_waitrequest_i,
-    input 		      ddr3_readdatavalid_i
+    input 		      ddr3_readdatavalid_i,
+
+	// emu port
+    output [AW-1:0]   ram_address_o,
+    output [DW/8-1:0] ram_byteenable_o,
+    output 		      ram_read_o,
+    input  [DW-1:0]   ram_readdata_i,
+    output [7:0] 	  ram_burstcount_o,
+    output 		      ram_write_o,
+    output [DW-1:0]   ram_writedata_o,
+    input 		      ram_waitrequest_i,
+    input 		      ram_readdatavalid_i
+
 );
 
 wire FPGA_CLK1_50;
@@ -1574,6 +1591,19 @@ wire [63:0] ram_writedata;
 wire [7:0]  ram_byteenable;
 wire        ram_write;
 
+assign ram_readdata      = ram_readdata_i;
+assign ram_waitrequest   = ram_waitrequest_i;
+assign ram_readdatavalid = ram_readdatavalid_i;
+
+assign ram_address_o	= ram_address;
+assign ram_byteenable_o	= ram_byteenable;
+assign ram_read_o		= ram_read;
+assign ram_burstcount_o	= ram_burstcount;
+assign ram_write_o		= ram_write;
+assign ram_writedata_o	= ram_writedata;
+
+assign CLK_EMU_DDRAM = ram_clk;
+
 wire        led_user;
 wire  [1:0] led_power;
 wire  [1:0] led_disk;
@@ -1584,7 +1614,8 @@ sync_fix sync_h(clk_vid, hs_emu, hs_fix);
 
 wire  [6:0] user_out, user_in;
 
-assign clk_ihdmi= clk_vid;
+assign clk_ihdmi = clk_vid;
+assign CLK_VIDEO = clk_vid;
 assign ce_hpix  = vga_ce_sl;
 assign hr_out   = vga_data_sl[23:16];
 assign hg_out   = vga_data_sl[15:8];

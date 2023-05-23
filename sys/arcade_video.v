@@ -202,7 +202,8 @@ module screen_rotate
 	output        DDRAM_RD
 );
 
-parameter MEM_BASE    = 7'b0010010; // buffer at 0x24000000, 3x8MB
+// was originally: 7'b0010010; // buffer at 0x24000000, 3x8MB
+parameter MEM_BASE = 7'h0; // this puts the buffers at 0x200000 / 0x300000 (64-bit word addressed)
 
 reg  do_flip;
 
