@@ -203,7 +203,7 @@ module screen_rotate
 );
 
 // was originally: 7'b0010010; // buffer at 0x24000000, 3x8MB
-parameter MEM_BASE = 7'h0; // this puts the buffers at 0x100000 / 0x200000 (64-bit word addressed)
+parameter MEM_BASE = 7'b0000011; // buffer at 0x6000000, 3x8MB
 
 reg  do_flip;
 
