@@ -1200,9 +1200,7 @@ end
 `ifndef MISTER_DISABLE_YC
 assign {dv_data_osd, dv_hs_osd, dv_vs_osd, dv_cs_osd } = ~yc_en ? {vga_data_osd, vga_hs_osd, vga_vs_osd, vga_cs_osd } : {yc_o, yc_hs, yc_vs, yc_cs };
 `else
-`ifndef DISABLE_VGA
 assign {dv_data_osd, dv_hs_osd, dv_vs_osd, dv_cs_osd } = {vga_data_osd, vga_hs_osd, vga_vs_osd, vga_cs_osd };
-`endif
 `endif
 
 wire hdmi_tx_clk;
@@ -1314,7 +1312,6 @@ assign HDMI_TX_D  = hdmi_out_d;
 wire [23:0] vga_data_sl;
 wire        vga_de_sl, vga_ce_sl, vga_vs_sl, vga_hs_sl;
 
-`ifndef DISABLE_VGA
 scanlines #(0) VGA_scanlines
 (
 	.clk(clk_vid),
@@ -1332,10 +1329,10 @@ scanlines #(0) VGA_scanlines
 	.de_out(vga_de_sl),
 	.ce_out(vga_ce_sl)
 );
-`endif
 
 wire [23:0] vga_data_osd;
 wire        vga_vs_osd, vga_hs_osd;
+wire        vga_cs_osd;
 
 `ifndef DISABLE_VGA
 osd vga_osd
@@ -1358,7 +1355,6 @@ osd vga_osd
 	.vs_out(vga_vs_osd)
 );
 
-wire vga_cs_osd;
 csync csync_vga(clk_vid, vga_hs_osd, vga_vs_osd, vga_cs_osd);
 
 `ifndef MISTER_DUAL_SDRAM
