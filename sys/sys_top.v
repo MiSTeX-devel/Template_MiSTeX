@@ -1676,7 +1676,7 @@ emu emu
 	.VGA_F1(f1),
 	.VGA_SCALER(vga_force_scaler),
 
-`ifndef DISBALE_VGA
+`ifndef DISABLE_VGA
 `ifndef MISTER_DUAL_SDRAM
 	.VGA_DISABLE(VGA_DISABLE),
 `endif
