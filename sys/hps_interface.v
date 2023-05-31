@@ -16,7 +16,6 @@ module hps_interface
     input osd_enable,
     input io_enable,
 
-    input  sync_clk,
     input  sys_clk,
     input  reset
 );
@@ -31,7 +30,7 @@ reg  fpga_en, _fpga_en;
 reg  osd_en,  _osd_en;
 reg  io_en,   _io_en;
 
-always @(posedge sync_clk) begin
+always @(posedge sys_clk) begin
     if (reset) begin
         cs <= 0;      _cs <= 0;
         mosi <= 0;    _mosi <= 0;

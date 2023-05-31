@@ -329,7 +329,6 @@ hps_interface hps_interface (
 	.osd_enable(HPS_OSD_ENABLE),
 	.io_enable(HPS_IO_ENABLE),
 
-	.sync_clk(CLK_100),
 	.sys_clk(clk_sys),
 	.reset(reset_req)
 );
