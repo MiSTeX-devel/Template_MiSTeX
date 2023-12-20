@@ -17,57 +17,79 @@ module hps_interface
     input io_enable,
 
     input  sys_clk,
-    input  reset
+    input  reset     // not used
 );
 
-wire [15:0] gp_word_out;
-wire        spi_rx_strobe;
-
-reg  cs,      _cs;
-reg  mosi,    _mosi;
-reg  sck,     _sck;
-reg  fpga_en, _fpga_en;
-reg  osd_en,  _osd_en;
-reg  io_en,   _io_en;
-
-always @(posedge sys_clk) begin
-    if (reset) begin
-        cs <= 0;      _cs <= 0;
-        mosi <= 0;    _mosi <= 0;
-        sck <= 0;     _sck <= 0;
-        fpga_en <= 0; _fpga_en <= 0;
-        osd_en <= 0;  _osd_en <= 0;
-        io_en <= 0;   _io_en <= 0;
-    end else begin
-        cs      <= _cs;      _cs      <= spi_cs;
-        mosi    <= _mosi;    _mosi    <= spi_mosi;
-        sck     <= _sck;     _sck     <= spi_clk;
-        fpga_en <= _fpga_en; _fpga_en <= fpga_enable;
-        osd_en  <= _osd_en;  _osd_en  <= osd_enable;
-        io_en   <= _io_en;   _io_en   <= io_enable;
-    end
-end
-
-spi_slave spi_slave (
-    .spi_device__sck(sck),
-    .spi_device__sdo(spi_miso),
-    .spi_device__sdi(mosi),
-    .spi_device__cs(cs),
-    .word_in(gp_word_out),
-    .word_out(gp_in),
-    .word_complete(spi_rx_strobe),
-    .clk(sys_clk),
-    .rst(reset)
-);
+// spi_clk is used to sample mosi and generate miso
+// sys_clk is used to generate io_strobe (for 1 sys_clk period)
+// This allow for slow sys_clk w.r.t. spi_clk
 
 assign gp_out = {
     11'b0,          // [31:21]
-    io_en,          // [20]
-    osd_en,         // [19]
-    fpga_en,        // [18]
+    io_enable,      // [20]
+    osd_enable,     // [19]
+    fpga_enable,    // [18]
     2'b0,           // [17:16]
-    gp_word_out     // [15:0]
+    word_out        // [15:0]
 };
-assign io_strobe = spi_rx_strobe;
+
+// count data bits and ouput data to master on spi_clk rising edge
+reg [3:0]  bit_cnt;
+always @(posedge spi_clk or posedge spi_cs) begin
+    if (spi_cs) begin
+		bit_cnt <=0;
+    end else begin
+		bit_cnt <= bit_cnt + 1;
+		spi_miso = gp_in[15-bit_cnt];
+    end
+end
+
+// latch data from master on spi_clk falling edge
+// and signal word complete on 16th bit
+reg [15:0] word_in;
+reg        word_complete;
+always @(negedge spi_clk or posedge spi_cs) begin
+    if (spi_cs) begin
+		word_complete <= 0;
+	 end else begin
+		word_in <= {word_in[14:0],spi_mosi};
+		if (bit_cnt == 0) begin
+			word_complete <= 1;
+		end else begin
+			word_complete <= 0;
+		end
+    end
+end
+
+// latch final word out after 2 sys_clk delay
+reg        word_complete_d1;
+reg        word_complete_d2;
+reg        word_complete_d3;
+reg [15:0] word_out;
+
+always @(posedge sys_clk) begin
+	word_complete_d1 <= word_complete;
+	word_complete_d2 <= word_complete_d1;
+	word_complete_d3 <= word_complete_d2;
+	if ((word_complete_d2 == 0) & (word_complete_d1 == 1)) begin
+		word_out <= word_in;
+	end	
+end
+
+// generate strobe after 3 sys_clk delay
+// (spi cs should not be deasserted too fast)
+reg        rx_strobe;
+always @(posedge sys_clk or posedge spi_cs) begin
+    if (spi_cs) begin
+		rx_strobe <=0;
+    end else begin
+		rx_strobe <= 0;
+		if ((word_complete_d3 == 0) & (word_complete_d2 == 1)) begin
+			rx_strobe <= 1;
+		end
+	end	
+end
+
+assign io_strobe = rx_strobe;
 
 endmodule
