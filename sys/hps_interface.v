@@ -46,7 +46,7 @@ assign io_strobe = ~do_valid_prev & do_valid;
 spi_slave spi_slave (
     .clk_i(sys_clk),
     .spi_sck_i(spi_clk),
-    .spi_miso_i(spi_miso),
+    .spi_miso_o(spi_miso),
     .spi_mosi_i(spi_mosi),
     .spi_ssel_i(spi_cs),
     .di_req_o(di_req),
