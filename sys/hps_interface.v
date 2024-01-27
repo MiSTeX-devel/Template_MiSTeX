@@ -21,43 +21,38 @@ module hps_interface
 );
 
 wire [15:0] gp_word_out;
-wire        spi_rx_strobe;
+wire        do_valid;
+reg         do_valid_prev;
 
-reg  cs,      _cs;
-reg  mosi,    _mosi;
-reg  sck,     _sck;
-reg  fpga_en, _fpga_en;
-reg  osd_en,  _osd_en;
-reg  io_en,   _io_en;
+wire        di_req;
+reg         di_req_prev;
+reg  [15:0] gp_in_data;
+wire        wren;
 
 always @(posedge sys_clk) begin
-    if (reset) begin
-        cs <= 0;      _cs <= 0;
-        mosi <= 0;    _mosi <= 0;
-        sck <= 0;     _sck <= 0;
-        fpga_en <= 0; _fpga_en <= 0;
-        osd_en <= 0;  _osd_en <= 0;
-        io_en <= 0;   _io_en <= 0;
-    end else begin
-        cs      <= _cs;      _cs      <= spi_cs;
-        mosi    <= _mosi;    _mosi    <= spi_mosi;
-        sck     <= _sck;     _sck     <= spi_clk;
-        fpga_en <= _fpga_en; _fpga_en <= fpga_enable;
-        osd_en  <= _osd_en;  _osd_en  <= osd_enable;
-        io_en   <= _io_en;   _io_en   <= io_enable;
-    end
+    di_req_prev <= di_req;
+    if (di_req) gp_in_data <= gpi_in;
+    // write data into SPI slave as soon
+    // as di_req goes low
+    wren <= di_req_prev & ~di_req;
+
+    do_valid_prev <= do_valid;
 end
 
+// IO complete as soon as do_valid goes high
+assign io_strobe = ~do_valid_prev & do_valid;
+
 spi_slave spi_slave (
-    .spi_device__sck(sck),
-    .spi_device__sdo(spi_miso),
-    .spi_device__sdi(mosi),
-    .spi_device__cs(cs),
-    .word_in(gp_word_out),
-    .word_out(gp_in),
-    .word_complete(spi_rx_strobe),
-    .clk(sys_clk),
-    .rst(reset)
+    .clk_i(sys_clk),
+    .spi_sck_i(sck),
+    .spi_miso_i(spi_miso),
+    .spi_mosi_i(mosi),
+    .spi_ssel_i(cs),
+    .di_req_o(di_req),
+    .di_i(gp_in_data),
+    .wren_i(wren),
+    .do_valid_o(do_valid),
+    .do_o(gp_word_out)
 );
 
 assign gp_out = {
@@ -68,6 +63,5 @@ assign gp_out = {
     2'b0,           // [17:16]
     gp_word_out     // [15:0]
 };
-assign io_strobe = spi_rx_strobe;
 
 endmodule
