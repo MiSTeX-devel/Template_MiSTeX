@@ -31,7 +31,7 @@ wire        wren;
 
 always @(posedge sys_clk) begin
     di_req_prev <= di_req;
-    if (di_req) gp_in_data <= gpi_in;
+    if (di_req) gp_in_data <= gp_in;
 
     do_valid_prev <= do_valid;
 end
@@ -58,9 +58,9 @@ spi_slave spi_slave (
 
 assign gp_out = {
     11'b0,          // [31:21]
-    io_en,          // [20]
-    osd_en,         // [19]
-    fpga_en,        // [18]
+    io_enable,      // [20]
+    osd_enable,     // [19]
+    fpga_enable,    // [18]
     2'b0,           // [17:16]
     gp_word_out     // [15:0]
 };
