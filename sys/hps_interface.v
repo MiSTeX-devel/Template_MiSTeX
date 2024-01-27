@@ -43,7 +43,7 @@ assign wren = di_req_prev & ~di_req;
 // IO complete as soon as do_valid goes high
 assign io_strobe = ~do_valid_prev & do_valid;
 
-spi_slave spi_slave (
+spi_slave #(.N(16), .CPOL(0), .CPHA(1)) spi_slave (
     .clk_i(sys_clk),
     .spi_sck_i(spi_clk),
     .spi_miso_o(spi_miso),
