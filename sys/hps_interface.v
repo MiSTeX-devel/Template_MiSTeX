@@ -32,22 +32,23 @@ wire        wren;
 always @(posedge sys_clk) begin
     di_req_prev <= di_req;
     if (di_req) gp_in_data <= gpi_in;
-    // write data into SPI slave as soon
-    // as di_req goes low
-    wren <= di_req_prev & ~di_req;
 
     do_valid_prev <= do_valid;
 end
+
+// write data into SPI slave as soon
+// as di_req goes low
+assign wren = di_req_prev & ~di_req;
 
 // IO complete as soon as do_valid goes high
 assign io_strobe = ~do_valid_prev & do_valid;
 
 spi_slave spi_slave (
     .clk_i(sys_clk),
-    .spi_sck_i(sck),
+    .spi_sck_i(spi_clk),
     .spi_miso_i(spi_miso),
-    .spi_mosi_i(mosi),
-    .spi_ssel_i(cs),
+    .spi_mosi_i(spi_mosi),
+    .spi_ssel_i(spi_cs),
     .di_req_o(di_req),
     .di_i(gp_in_data),
     .wren_i(wren),
