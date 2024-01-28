@@ -24,11 +24,6 @@ wire [15:0] gp_word_out;
 wire        do_valid;
 reg         do_valid_prev;
 
-wire        di_req;
-reg         di_req_prev;
-reg  [15:0] gp_in_data;
-wire        wren;
-
 always @(posedge sys_clk) begin
     do_valid_prev <= do_valid;
 end
