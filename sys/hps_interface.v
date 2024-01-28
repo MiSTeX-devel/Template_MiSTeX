@@ -30,15 +30,8 @@ reg  [15:0] gp_in_data;
 wire        wren;
 
 always @(posedge sys_clk) begin
-    di_req_prev <= di_req;
-    if (di_req) gp_in_data <= gp_in;
-
     do_valid_prev <= do_valid;
 end
-
-// write data into SPI slave as soon
-// as di_req goes low
-assign wren = di_req_prev & ~di_req;
 
 // IO complete as soon as do_valid goes high
 assign io_strobe = ~do_valid_prev & do_valid;
@@ -49,9 +42,9 @@ spi_slave #(.N(16), .CPOL(0), .CPHA(1)) spi_slave (
     .spi_miso_o(spi_miso),
     .spi_mosi_i(spi_mosi),
     .spi_ssel_i(spi_cs),
-    .di_req_o(di_req),
-    .di_i(gp_in_data),
-    .wren_i(wren),
+    // continuously write gp_in, we always want the latest value here
+    .di_i(gp_in),
+    .wren_i(1'b1),
     .do_valid_o(do_valid),
     .do_o(gp_word_out)
 );
