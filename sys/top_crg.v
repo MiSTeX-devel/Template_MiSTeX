@@ -3,7 +3,7 @@ module top_crg (
     output FPGA_CLK1_50,
     output FPGA_CLK2_50,
     output FPGA_CLK3_50,
-    output SPI_CLK_100,
+    output CLK_100,
     output clk_audio
 );
 
@@ -42,7 +42,7 @@ ALTPLL #(
     .FBIN(1'd1),
     .PFDENA(1'd1),
     .PLLENA(1'd1),
-    .CLK({ clk_audio, SPI_CLK_100, FPGA_CLK3_50, FPGA_CLK2_50, FPGA_CLK1_50 }),
+    .CLK({ clk_audio, CLK_100, FPGA_CLK3_50, FPGA_CLK2_50, FPGA_CLK1_50 }),
     .LOCKED()
 );
 `endif
@@ -71,7 +71,7 @@ ALTPLL #(
         .RST(1'b0),
         .CLKFBOUT(feedback),
         .CLKOUT0(out_clk),
-        .CLKOUT1(SPI_CLK_100),
+        .CLKOUT1(CLK_100),
         .LOCKED()
     );
 

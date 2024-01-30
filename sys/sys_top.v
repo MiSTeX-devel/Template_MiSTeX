@@ -182,7 +182,7 @@ top_crg top_crg (
 	`endif
 	`ifndef CLK_100_EXT
 	,
-	.SPI_CLK_100(CLK_100)
+	.CLK_100(CLK_100)
 	`endif
 	);
 
@@ -1267,8 +1267,8 @@ ODDR #(.DDR_CLK_EDGE("OPPOSITE_EDGE"),
 	.C(hdmi_tx_clk),
 	.Q(HDMI_TX_CLK),
 	.CE(1'b1), // 1-bit clock enable input
-	.D1(0'b0), // 1-bit data input (positive edge)
-	.D2(0'b1) // 1-bit data input (negative edge)
+	.D1(1'b0), // 1-bit data input (positive edge)
+	.D2(1'b1) // 1-bit data input (negative edge)
 );
 `endif
 `endif // MISTER_DEBUG_NOHDMI
