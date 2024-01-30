@@ -1,23 +1,23 @@
 module hps_interface
 (
     // HPS interface
-    input      [15:0]  gp_in,
-    output     [31:0]  gp_out,
-    output             io_strobe,
+    input   [15:0] gp_in,
+    output  [31:0] gp_out,
+    output         io_strobe,
 
     // HPS SPI
-    input  spi_mosi,
-    output spi_miso,
-    input  spi_clk,
-    input  spi_cs,
+    input      spi_mosi,
+    output reg spi_miso,
+    input      spi_clk,
+    input      spi_cs,
 
     // other HPS signals
     input fpga_enable,
     input osd_enable,
     input io_enable,
 
-    input  sys_clk,
-    input  reset     // not used
+    input sys_clk,
+    input reset     // not used
 );
 
 // spi_clk is used to sample mosi and generate miso
@@ -37,9 +37,9 @@ assign gp_out = {
 reg [3:0]  bit_cnt;
 always @(posedge spi_clk or posedge spi_cs) begin
     if (spi_cs) begin
-		bit_cnt <= 0;
+      bit_cnt <= 0;
     end else begin
-		bit_cnt <= bit_cnt + 1;
+      bit_cnt <= bit_cnt + 1;
       spi_miso = gp_in[15 - bit_cnt];
     end
 end
@@ -50,14 +50,15 @@ reg [15:0] word_in;
 reg        word_complete;
 always @(negedge spi_clk or posedge spi_cs) begin
     if (spi_cs) begin
-		  word_complete <= 0;
+      word_complete <= 0;
     end else begin
       word_in <= { word_in[14:0], spi_mosi };
-		if (bit_cnt == 0) begin
-			word_complete <= 1;
-		end else begin
-			word_complete <= 0;
-		end
+
+      if (bit_cnt == 0) begin
+        word_complete <= 1;
+      end else begin
+        word_complete <= 0;
+      end
     end
 end
 
@@ -68,26 +69,26 @@ reg        word_complete_d3;
 reg [15:0] word_out;
 
 always @(posedge sys_clk) begin
-	word_complete_d1 <= word_complete;
-	word_complete_d2 <= word_complete_d1;
-	word_complete_d3 <= word_complete_d2;
-	if ((word_complete_d2 == 0) & (word_complete_d1 == 1)) begin
-		word_out <= word_in;
-	end	
+  word_complete_d1 <= word_complete;
+  word_complete_d2 <= word_complete_d1;
+  word_complete_d3 <= word_complete_d2;
+  if ((word_complete_d2 == 0) & (word_complete_d1 == 1)) begin
+    word_out <= word_in;
+  end	
 end
 
 // generate strobe after 3 sys_clk delay
 // (spi cs should not be deasserted too fast)
-reg        rx_strobe;
+reg rx_strobe;
 always @(posedge sys_clk or posedge spi_cs) begin
     if (spi_cs) begin
-		  rx_strobe <=0;
+      rx_strobe <=0;
     end else begin
-		  rx_strobe <= 0;
-		if ((word_complete_d3 == 0) & (word_complete_d2 == 1)) begin
-			rx_strobe <= 1;
-		end
-	end	
+      rx_strobe <= 0;
+    if ((word_complete_d3 == 0) & (word_complete_d2 == 1)) begin
+      rx_strobe <= 1;
+    end
+  end	
 end
 
 assign io_strobe = rx_strobe;
