@@ -182,7 +182,7 @@ top_crg top_crg (
 	`endif
 	`ifndef CLK_100_EXT
 	,
-	.SPI_CLK_100(CLK_100)
+	.CLK_100(CLK_100)
 	`endif
 	);
 
