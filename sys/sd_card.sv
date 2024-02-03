@@ -85,6 +85,7 @@ localparam PREF_STATE_IDLE     = 0;
 localparam PREF_STATE_RD       = 1;
 localparam PREF_STATE_FINISH   = 2;
 
+`ifdef ALTERA
 altsyncram sdbuf
 (
 	.clock0    (clk_sys),
@@ -139,6 +140,39 @@ defparam
 	sdbuf.width_byteena_a = 1,
 	sdbuf.width_byteena_b = 1,
 	sdbuf.wrcontrol_wraddress_reg_b = "CLOCK1";
+`else
+sys_dpram sdbuf
+(
+	.clock_a   (clk_sys),
+	.address_a ({sd_buf,sd_buff_addr}),
+	.data_a    (sd_buff_dout),
+	.wren_a    (sd_ack & sd_buff_wr),
+	.q_a       (sd_buff_din),
+
+	.clock_b   (clk_spi),
+	.address_b ({spi_buf,buffer_ptr}),
+	.data_b    (buffer_din),
+	.wren_b    (buffer_wr),
+	.q_b       (buffer_dout),
+
+	.aclr0(1'b0),
+	.aclr1(1'b0),
+	.addressstall_a(1'b0),
+	.addressstall_b(1'b0),
+	.byteena_a(1'b1),
+	.byteena_b(1'b1),
+	.clocken0(1'b1),
+	.clocken1(1'b1),
+	.clocken2(1'b1),
+	.clocken3(1'b1),
+	.eccstatus(),
+	.rden_a(1'b1),
+	.rden_b(1'b1)
+);
+defparam
+	sdbuf.widthad_a  = AW+3,
+	sdbuf.width_a    = DW+1;
+`endif
 
 reg [26:0] csd_size;
 reg        csd_sdhc;
