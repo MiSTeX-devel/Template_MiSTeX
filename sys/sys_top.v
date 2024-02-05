@@ -891,7 +891,7 @@ always @(posedge clk_vid) begin : video_calc_block
 	vmax <= vmaxi;
 end
 
-`ifndef MISTEX_HDMI
+`ifdef ALTERA
 `ifndef MISTER_DEBUG_NOHDMI
 wire [15:0] lltune;
 pll_hdmi_adj pll_hdmi_adj
@@ -914,7 +914,7 @@ pll_hdmi_adj pll_hdmi_adj
 `else
 	assign led_locked = 0;
 `endif // MISTER_DEBUG_NOHDMI
-`endif // MISTEX_HDMI
+`endif // ALTERA
 
 wire [63:0] pal_data;
 wire [47:0] pal_d = {pal_data[55:32], pal_data[23:0]};
@@ -938,7 +938,7 @@ end
 /////////////////////////  HDMI output  /////////////////////////////////
 `ifndef MISTER_DEBUG_NOHDMI
 wire hdmi_clk_out;
-`ifndef MISTEX_HDMI
+`ifdef ALTERA
 pll_hdmi pll_hdmi
 (
 	.refclk(FPGA_CLK1_50),
@@ -947,9 +947,10 @@ pll_hdmi pll_hdmi
 	.reconfig_from_pll(reconfig_from_pll),
 	.outclk_0(hdmi_clk_out)
 );
-`else // MISTEX_HDMI
+`else // not ALTERA
+// TODO: Xilinx dynamic reconfiguration
 assign hdmi_clk_out = HDMI_CLK_IN;
-`endif // MISTEX_HDMI
+`endif // ALTERA
 `endif // MISTER_DEBUG_NOHDMI
 
 //1920x1080@60 PCLK=148.5MHz CEA
@@ -974,7 +975,7 @@ reg   [5:0] adj_address;
 reg  [31:0] adj_data;
 
 `ifndef MISTER_DEBUG_NOHDMI
-`ifndef MISTEX_HDMI
+`ifdef ALTERA
 pll_cfg pll_cfg
 (
 	.mgmt_clk(FPGA_CLK1_50),
@@ -1028,9 +1029,9 @@ always @(posedge FPGA_CLK1_50) begin : gotd_block
 	old_wait <= adj_waitrequest;
 	if(old_wait & ~adj_waitrequest & gotd) cfg_ready <= 1;
 end
-`else
+`else // not ALTERA
 wire cfg_ready = 1;
-`endif // MISTEX_HDMI
+`endif // ALTERA
 `else
 wire cfg_ready = 1;
 `endif  // MISTER_DEBUG_NOHDMI
