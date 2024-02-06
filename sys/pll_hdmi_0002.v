@@ -160,7 +160,9 @@ module  pll_hdmi_0002(
 		.pll_bwctrl(4000),
 		.pll_output_clk_frequency("445.499999 MHz"),
 		.pll_fractional_division("3908420153"),
-		.mimic_fbclk_type("none"),
+		// This gives me a fitter error for some weird reason
+		// strange... it used to work in the past
+		//.mimic_fbclk_type("none"),
 		.pll_fbclk_mux_1("glb"),
 		.pll_fbclk_mux_2("m_cnt"),
 		.pll_m_cnt_in_src("ph_mux_clk"),
