@@ -11,15 +11,15 @@ module  pll_hdmi_0002(
 
     wire feedback;
 	
-	PLLE2_ADV #(
-		.CLKFBOUT_MULT(7'd25),
+	MMCME2_ADV #(
+		.CLKFBOUT_MULT_F(25.25),
 		.CLKIN1_PERIOD(20.0),
-		.CLKOUT0_DIVIDE(7'd17), // 50*25/17 =~ 74.25MHz
+		.CLKOUT0_DIVIDE_F(17), // 50*25.25/17 = 74.26470588235294
 		.CLKOUT0_PHASE(1'd0),
 		.DIVCLK_DIVIDE(1'd1),
 		.REF_JITTER1(0.01),
 		.STARTUP_WAIT("FALSE")
-	) PLLE2_ADV (
+	) HDMI_PLL (
 		.CLKFBIN(feedback),
 		.CLKIN1(refclk),
 		.PWRDWN(1'b0),
