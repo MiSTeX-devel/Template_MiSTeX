@@ -51,14 +51,14 @@ module pll_cfg #(
 	);
 `endif
 `ifdef XILINX
-	xilinx_pll_reconfig_top pll_cfg_inst (  
+	xilinx_pll_reconfig_top pll_cfg_inst (
 		.mgmt_clk   (mgmt_clk),
 		.mgmt_reset (mgmt_reset),
-	
+
 		// PLL ports
 		.reconfig_to_pll   (reconfig_to_pll),
 		.reconfig_from_pll (reconfig_from_pll),
-	
+
 		// configuration interface: avalon-MM slave
 		.mgmt_readdata    (mgmt_readdata),
 		.mgmt_writedata   (mgmt_writedata),

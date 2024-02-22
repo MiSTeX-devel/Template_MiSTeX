@@ -98,7 +98,7 @@ module xilinx7_mmcm_reconfig (
    input  wire start_reconfig,
    output reg  reconfig_done
 );
-   
+
    // State machine which communicates with the MMCME reconfiguration bus
 
    localparam RESTART      = 4'h0;
@@ -380,9 +380,9 @@ module xilinx7_mmcm_reconfig (
          LOCK_REG2_STEP:      mask = 16'h8000; // { LOCK[34:30], LOCK[9:0] }
          LOCK_REG3_STEP:      mask = 16'h8000; // { LOCK[39:35], LOCK[19:10] }
          FILT_REG1_STEP:      mask = 16'h66FF; // { FILT[9],   2'h0,
-                                                //   FILT[8:7], 2'h0, 
+                                                //   FILT[8:7], 2'h0,
                                                 //   FILT[6],   8'h00 }
-         FILT_REG2_STEP:      mask = 16'h666F; // { FILT[5],   2'h0,    
+         FILT_REG2_STEP:      mask = 16'h666F; // { FILT[5],   2'h0,
          default:             mask = 16'h0000;
       endcase
       case (config_step)

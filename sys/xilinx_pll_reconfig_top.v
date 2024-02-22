@@ -5,7 +5,7 @@
 `timescale 1ps/1ps
 
 `ifdef XILINX
-module xilinx_pll_reconfig_top (  
+module xilinx_pll_reconfig_top (
     input wire mgmt_clk,
     input wire mgmt_reset,
 
@@ -73,7 +73,7 @@ always @(posedge(mgmt_clk)) begin
     end else begin
         if (mgmt_write) begin
             start_reconfig <= 1'b0;
-            case (mgmt_address)         
+            case (mgmt_address)
                 MODE_REGISTER_ADDRESS:  mode <= mgmt_writedata[0];
                 M_COUNTER_ADDRESS:      M <= mgmt_writedata;
                 N_COUNTER_ADDRESS:      N <= mgmt_writedata;
@@ -87,7 +87,7 @@ always @(posedge(mgmt_clk)) begin
                 MODE_REGISTER_ADDRESS:   mgmt_readdata <= { 31'd0, mode };
                 default:                 mgmt_readdata <=   32'd0;
             endcase
-        end  
+        end
     end
 end
 
