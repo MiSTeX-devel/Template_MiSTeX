@@ -1052,9 +1052,6 @@ hdmi_config hdmi_config
 	.limited(hdmi_limited),
 	.ypbpr(ypbpr_en & direct_video)
 );
-`else
-assign hdmi_config_done = 1'b1;
-`endif
 
 /* TODO: later, when we have HDMI
 cyclonev_hps_interface_peripheral_i2c hdmi_i2c
@@ -1065,6 +1062,10 @@ cyclonev_hps_interface_peripheral_i2c hdmi_i2c
 	.sda(HDMI_I2C_SDA)
 );
 */
+
+`else
+assign hdmi_config_done = 1'b1;
+`endif
 
 `ifndef MISTER_DEBUG_NOHDMI
 
