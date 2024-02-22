@@ -51,8 +51,21 @@ module pll_cfg #(
 	);
 `endif
 `ifdef XILINX
-	assign mgmt_waitrequest = 1'b0;
-	assign mgmt_readdata    = 32'b0;
-	assign reconfig_to_pll  = 64'b0;
+	xilinx_pll_reconfig_top pll_cfg_inst (  
+		.mgmt_clk   (mgmt_clk),
+		.mgmt_reset (mgmt_reset),
+	
+		// PLL ports
+		.reconfig_to_pll   (reconfig_to_pll),
+		.reconfig_from_pll (reconfig_from_pll),
+	
+		// configuration interface: avalon-MM slave
+		.mgmt_readdata    (mgmt_readdata),
+		.mgmt_writedata   (mgmt_writedata),
+		.mgmt_waitrequest (mgmt_waitrequest),
+		.mgmt_address     (mgmt_address),
+		.mgmt_read        (mgmt_read),
+		.mgmt_write       (mgmt_write)
+    );
 `endif
 endmodule

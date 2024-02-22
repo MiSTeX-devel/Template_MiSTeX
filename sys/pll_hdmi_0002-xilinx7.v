@@ -8,7 +8,27 @@ module  pll_hdmi_0002(
 	output wire [63:0] reconfig_from_pll
 );
 
+	wire [15:0] din;
+	wire [6:0]  daddr;
+	wire [15:0] dout;
+	wire        den;
+	wire        dwe;
+	wire        rst_mmcm;
+	wire        drdy;
+	wire        dclk;
 
+	// inputs from PLL
+	assign reconfig_from_pll[15:0] = dout;
+	assign reconfig_from_pll[16]   = drdy;
+	assign reconfig_from_pll[17]   = locked;
+
+	// outputs to PLL
+	assign din      = reconfig_to_pll[15:0];
+	assign daddr    = reconfig_to_pll[22:16];
+	assign den      = reconfig_to_pll[23];
+	assign dwe      = reconfig_to_pll[24];
+	assign rst_mmcm = reconfig_to_pll[25];
+	assign dclk     = reconfig_to_pll[26];
     wire feedback;
 	
 	MMCME2_ADV #(
@@ -26,7 +46,14 @@ module  pll_hdmi_0002(
 		.RST(rst),
 		.CLKFBOUT(feedback),
 		.CLKOUT0(outclk_0),
-		.LOCKED(locked)
+		.DO        (dout),
+		.DRDY      (drdy),
+		.DADDR     (daddr),
+		.DCLK      (dclk),
+		.DEN       (den),
+		.DI        (din),
+		.DWE       (dwe),
+		.LOCKED    (locked)
 );
 endmodule
 
