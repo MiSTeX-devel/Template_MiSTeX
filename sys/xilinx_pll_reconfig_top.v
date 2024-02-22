@@ -14,7 +14,7 @@ module xilinx_pll_reconfig_top (
     input   wire [63:0] reconfig_from_pll,
 
     // configuration interface: avalon-MM slave
-    output  reg wire [31:0] mgmt_readdata,
+    output      reg  [31:0] mgmt_readdata,
     input       wire [31:0] mgmt_writedata,
     output      wire        mgmt_waitrequest,
     input       wire [5:0]  mgmt_address,
@@ -99,9 +99,7 @@ xilinx7_mmcm_reconfig xilinx7_reconfig_inst (
     .CLKOUT0_HIGH_TIME  (C[16] ? 6'd1 : C[13:8]),
     .CLKOUT0_LOW_TIME   (C[16] ? 6'd1 : C[5:0]),
     .CLKOUT0_PHASE_MUX  (3'd0),
-    .CLKOUT0_FRAC       (3'd0),
     .CLKOUT0_FRAC_EN    (1'b0),
-    .CLKOUT0_WF_R       (1'b0),
     .CLKOUT0_EDGE       (C[17]),
     .CLKOUT0_NO_COUNT   (C[16]),
     .CLKOUT0_DELAY_TIME (6'd0),
@@ -120,6 +118,7 @@ xilinx7_mmcm_reconfig xilinx7_reconfig_inst (
     .CLKFBOUT_FRAC       (K[31:29]),
     .CLKFBOUT_FRAC_EN    (1'b1),
     .CLKFBOUT_WF_R       (1'b0),
+    .CLKFBOUT_WF_F       (1'b0),
     .CLKFBOUT_EDGE       (M[17]),
     .CLKFBOUT_NO_COUNT   (M[16]),
     .CLKFBOUT_DELAY_TIME (6'b0),

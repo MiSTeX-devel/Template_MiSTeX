@@ -1,10 +1,10 @@
 `timescale 1ns/10ps
-module  pll_hdmi_0002(
-	input wire refclk,
-	input wire rst,
+module  pll_hdmi_0002 (
+	input  wire refclk,
+	input  wire rst,
 	output wire outclk_0,
 	output wire locked,
-	input wire [63:0] reconfig_to_pll,
+	input  wire [63:0] reconfig_to_pll,
 	output wire [63:0] reconfig_from_pll
 );
 
@@ -29,7 +29,9 @@ module  pll_hdmi_0002(
 	assign dwe      = reconfig_to_pll[24];
 	assign rst_mmcm = reconfig_to_pll[25];
 	assign dclk     = reconfig_to_pll[26];
+
     wire feedback;
+	wire clkout0;
 	
 	MMCME2_ADV #(
 		.CLKFBOUT_MULT_F(25.25),
@@ -39,13 +41,13 @@ module  pll_hdmi_0002(
 		.DIVCLK_DIVIDE(1'd1),
 		.REF_JITTER1(0.01),
 		.STARTUP_WAIT("FALSE")
-	) HDMI_PLL (
+	) pll_hdmi_0002_inst (
 		.CLKFBIN(feedback),
 		.CLKIN1(refclk),
 		.PWRDWN(1'b0),
 		.RST(rst),
 		.CLKFBOUT(feedback),
-		.CLKOUT0(outclk_0),
+		.CLKOUT0(clkout0),
 		.DO        (dout),
 		.DRDY      (drdy),
 		.DADDR     (daddr),
@@ -54,6 +56,9 @@ module  pll_hdmi_0002(
 		.DI        (din),
 		.DWE       (dwe),
 		.LOCKED    (locked)
-);
+	);
+
+	BUFG clk_bufg (.I(clkout0), .O(outclk_0));
+
 endmodule
 
