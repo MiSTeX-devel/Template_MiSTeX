@@ -1052,17 +1052,6 @@ hdmi_config hdmi_config
 	.limited(hdmi_limited),
 	.ypbpr(ypbpr_en & direct_video)
 );
-
-/* TODO: later, when we have HDMI
-cyclonev_hps_interface_peripheral_i2c hdmi_i2c
-(
-	.out_clk(hdmi_scl_en),
-	.scl(HDMI_I2C_SCL),
-	.out_data(hdmi_sda_en),
-	.sda(HDMI_I2C_SDA)
-);
-*/
-
 `else
 assign hdmi_config_done = 1'b1;
 `endif
