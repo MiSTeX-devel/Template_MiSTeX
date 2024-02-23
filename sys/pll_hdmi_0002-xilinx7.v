@@ -34,6 +34,7 @@ module  pll_hdmi_0002 (
 	wire clkout0;
 	
 	MMCME2_ADV #(
+		.BANDWIDTH("OPTIMIZED"),
 		.CLKFBOUT_MULT_F(25.25),
 		.CLKIN1_PERIOD(20.0),
 		.CLKOUT0_DIVIDE_F(17), // 50*25.25/17 = 74.26470588235294
@@ -42,12 +43,12 @@ module  pll_hdmi_0002 (
 		.REF_JITTER1(0.01),
 		.STARTUP_WAIT("FALSE")
 	) pll_hdmi_0002_inst (
-		.CLKFBIN(feedback),
-		.CLKIN1(refclk),
-		.PWRDWN(1'b0),
-		.RST(rst),
-		.CLKFBOUT(feedback),
-		.CLKOUT0(clkout0),
+		.CLKFBIN   (feedback),
+		.CLKIN1    (refclk),
+		.PWRDWN    (1'b0),
+		.RST       (rst),
+		.CLKFBOUT  (feedback),
+		.CLKOUT0   (clkout0),
 		.DO        (dout),
 		.DRDY      (drdy),
 		.DADDR     (daddr),

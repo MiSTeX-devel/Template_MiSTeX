@@ -75,9 +75,9 @@ always @(posedge(mgmt_clk)) begin
             start_reconfig <= 1'b0;
             case (mgmt_address)
                 MODE_REGISTER_ADDRESS:  mode <= mgmt_writedata[0];
-                M_COUNTER_ADDRESS:      M <= mgmt_writedata;
-                N_COUNTER_ADDRESS:      N <= mgmt_writedata;
-                C_COUNTER_ADDRESS:      C <= mgmt_writedata;
+                M_COUNTER_ADDRESS:      M <= mgmt_writedata[17:0];
+                N_COUNTER_ADDRESS:      N <= mgmt_writedata[17:0];
+                C_COUNTER_ADDRESS:      C <= mgmt_writedata[22:0];
                 K_ADDRESS:              K <= mgmt_writedata;
                 START_REGISTER_ADDRESS: start_reconfig <= 1'b1;
             endcase
@@ -91,17 +91,42 @@ always @(posedge(mgmt_clk)) begin
     end
 end
 
+wire       c_disabled;
+wire       m_disabled;
+wire       m_is_odd;
+wire [5:0] m_high;
+wire [5:0] m_low;
+
+assign c_disabled = C[16];
+assign m_disabled = M[16];
+assign m_is_odd   = M[17];
+assign m_high     = M[13:8];
+assign m_low      = M[5:0];
+
+wire [5:0] fbout_high;
+wire [5:0] fbout_low;
+wire [2:0] frac;
+wire       frac_lower_half;
+wire       frac_is_nonzero;
+
+// subtract one from the M multiplier if frac is zero, to compensate for Xilinx weirdness
+assign fbout_high       = frac_is_nonzero ? m_high : m_is_odd ? m_high - 1 : m_high;
+assign fbout_low        = frac_is_nonzero ? m_low  : m_is_odd ? m_low      : m_low - 1;
+assign frac             = K[31:29];
+assign frac_lower_half  = ~frac[2];
+assign frac_is_nonzero  = frac > 3'b000;
+
 xilinx7_mmcm_reconfig xilinx7_reconfig_inst (
     .rst(mgmt_reset),
     .locked(locked),
 
     // CLKOUT0
-    .CLKOUT0_HIGH_TIME  (C[16] ? 6'd1 : C[13:8]),
-    .CLKOUT0_LOW_TIME   (C[16] ? 6'd1 : C[5:0]),
+    .CLKOUT0_HIGH_TIME  (c_disabled ? 6'd1 : C[13:8]),
+    .CLKOUT0_LOW_TIME   (c_disabled ? 6'd1 : C[5:0]),
     .CLKOUT0_PHASE_MUX  (3'd0),
     .CLKOUT0_FRAC_EN    (1'b0),
     .CLKOUT0_EDGE       (C[17]),
-    .CLKOUT0_NO_COUNT   (C[16]),
+    .CLKOUT0_NO_COUNT   (c_disabled),
     .CLKOUT0_DELAY_TIME (6'd0),
 
     .CLKOUT1_NO_COUNT   (1'b1),
@@ -112,15 +137,15 @@ xilinx7_mmcm_reconfig xilinx7_reconfig_inst (
     .CLKOUT6_NO_COUNT   (1'b1),
 
     // CLKFBOUT
-    .CLKFBOUT_HIGH_TIME  (M[16] ? 6'd1 : M[13:8]),
-    .CLKFBOUT_LOW_TIME   (M[16] ? 6'd1 : M[5:0]),
+    .CLKFBOUT_HIGH_TIME  (m_disabled ? 6'd1 : fbout_high),
+    .CLKFBOUT_LOW_TIME   (m_disabled ? 6'd1 : fbout_low),
     .CLKFBOUT_PHASE_MUX  (3'd0),
-    .CLKFBOUT_FRAC       (K[31:29]),
+    .CLKFBOUT_FRAC       (frac),
     .CLKFBOUT_FRAC_EN    (1'b1),
     .CLKFBOUT_WF_R       (1'b0),
-    .CLKFBOUT_WF_F       (1'b0),
-    .CLKFBOUT_EDGE       (M[17]),
-    .CLKFBOUT_NO_COUNT   (M[16]),
+    .CLKFBOUT_WF_F       (frac_lower_half),
+    .CLKFBOUT_EDGE       (1'b0),
+    .CLKFBOUT_NO_COUNT   (m_disabled),
     .CLKFBOUT_DELAY_TIME (6'b0),
 
     // DIVCLK
