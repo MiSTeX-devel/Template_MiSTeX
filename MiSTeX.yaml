@@ -13,6 +13,7 @@ quartus:
     - sys/altera_pll_reconfig_core.v
     - sys/pll_audio_0002.v
     - sys/pll_hdmi_0002.v
+    - sys/pll_cfg_hdmi.v
 
 vivado:
   sourcefiles:
