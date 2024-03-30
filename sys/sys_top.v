@@ -970,12 +970,7 @@ reg   [5:0] adj_address;
 reg  [31:0] adj_data;
 
 `ifndef MISTER_DEBUG_NOHDMI
-`ifdef ALTERA
-pll_cfg_hdmi pll_cfg_hdmi
-`endif
-`ifdef XILINX
 pll_cfg pll_cfg
-`endif
 (
 	.mgmt_clk(FPGA_CLK1_50),
 	.mgmt_reset(reset_req),
