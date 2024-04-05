@@ -193,7 +193,7 @@ wire SD_CS, SD_CLK, SD_MOSI;
 
 ////////// MB SWITCH ////////
 wire   [3:0] SW;
-assign SW[3:0] = 3'b0;
+assign SW[3:0] = 4'b0;
 
 `ifndef MISTER_DUAL_SDRAM
 	wire sd_miso = SW[3]; // | SDIO_DAT[0];
