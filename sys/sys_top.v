@@ -155,7 +155,7 @@ module sys_top #(
     input 		      ddr3_readdatavalid_i,
 
 	// emu port
-    output [AW-1:0]   ram_address_o,
+    output [AW:0]     ram_address_o,
     output [DW/8-1:0] ram_byteenable_o,
     output 		      ram_read_o,
     input  [DW-1:0]   ram_readdata_i,
