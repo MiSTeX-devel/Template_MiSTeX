@@ -296,7 +296,6 @@ wire        io_wide;
 wire [15:0] io_dout;
 reg  [15:0] io_dout_sys;
 
-wire [15:0] dout = io_dout;
 wire [31:0] gp_in = io_dout; //{1'b0, btn_user | btn[1], btn_osd | btn[0], SW[3], 8'd0, io_ver, 1'b0, io_wide, io_dout};
 
 `ifndef MISTER_DEBUG_NOHDMI
