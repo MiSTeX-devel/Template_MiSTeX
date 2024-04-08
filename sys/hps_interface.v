@@ -26,12 +26,21 @@ module hps_interface
 
 assign gp_out = {
     11'b0,          // [31:21]
-    io_enable,      // [20]
-    osd_enable,     // [19]
-    fpga_enable,    // [18]
+    io_enable_r,    // [20]
+    osd_enable_r,   // [19]
+    fpga_enable_r,  // [18]
     2'b0,           // [17:16]
     word_out        // [15:0]
 };
+
+reg io_enable_r;
+reg osd_enable_r;
+reg fpga_enable_r;
+always @(posedge sys_clk) begin
+	io_enable_r <= io_enable;
+	osd_enable_r <= osd_enable;
+	fpga_enable_r <= fpga_enable;
+end
 
 // count data bits and ouput data to master on spi_clk rising edge
 reg [3:0]  bit_cnt;
@@ -94,3 +103,4 @@ end
 assign io_strobe = rx_strobe;
 
 endmodule
+
