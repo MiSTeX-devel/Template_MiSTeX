@@ -27,8 +27,8 @@ module video_mixer
 	output reg       CE_PIXEL,  // output pixel clock enable
 
 	input            ce_pix,    // input pixel clock or clock_enable
-	input            scandoubler,
 
+	input            scandoubler,
 	input            hq2x, 	    // high quality 2x scaling
 
 	inout     [21:0] gamma_bus,
@@ -60,7 +60,7 @@ module video_mixer
 );
 
 localparam DWIDTH = HALF_DEPTH ? 3 : 7;
-localparam RINWIDTH = GAMMA && HALF_DEPTH ? 7 : DWIDTH;
+localparam RINWIDTH = (GAMMA && HALF_DEPTH) ? 7 : DWIDTH;
 localparam DWIDTH_SD = GAMMA ? 7 : DWIDTH;
 localparam HALF_DEPTH_SD = GAMMA ? 0 : HALF_DEPTH;
 
