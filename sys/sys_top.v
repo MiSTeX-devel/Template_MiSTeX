@@ -1074,7 +1074,7 @@ assign hdmi_config_done = 1'b1;
 `ifndef MISTER_DEBUG_NOHDMI
 	`ifdef MISTER_FB
 	reg dis_output;
-	always @(posedge clk_hdmi) begin
+	always @(posedge clk_hdmi) begin : dis_block
 		reg dis;
 		dis <= fb_force_blank & ~LFB_EN;
 		dis_output <= dis;
