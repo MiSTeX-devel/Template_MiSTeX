@@ -265,12 +265,8 @@ mcp23009 mcp23009
 wire io_dig = mcp_en ? mcp_mode : SW[3];
 
 `ifndef MISTER_DUAL_SDRAM
-	wire   av_dis    = io_dig | VGA_EN;
-	assign LED_POWER = av_dis ? 1'bZ : mcp_en ? de1          : led_p ? 1'bZ : 1'b0;
-	assign LED_HDD   = av_dis ? 1'bZ : mcp_en ? (sog & ~cs1) : led_d ? 1'bZ : 1'b0;
-	//assign LED_USER  = av_dis ? 1'bZ : mcp_en ? ~vga_tx_clk  : led_u ? 1'bZ : 1'b0;
-	assign LED_USER  = VGA_TX_CLK;
-	wire   BTN_DIS   = VGA_EN;
+	wire   av_dis    = io_dig;
+	wire   BTN_DIS   = 1'b0;
 `else
 	wire   BTN_RESET = SDRAM2_DQ[9];
 	wire   BTN_OSD   = SDRAM2_DQ[13];
@@ -286,7 +282,7 @@ always @(posedge FPGA_CLK2_50) begin : btn_block
 	reg btn_en = 0;
 
 	btn_up <= BTN_RESET & BTN_OSD & BTN_USER;
-	if(~reset & btn_up & ~&btn_timeout) btn_timeout <= btn_timeout + 1'd1;
+	if(~reset_req & btn_up & ~&btn_timeout) btn_timeout <= btn_timeout + 1'd1;
 	btn_en <= ~BTN_DIS;
 	BTN_EN <= &btn_timeout & btn_en;
 end
@@ -1085,7 +1081,7 @@ assign hdmi_config_done = 1'b1;
 	end
 	`else
 	wire dis_output = 0;
-	`endif
+	`endif // MISTER_FB
 
 	wire [23:0] hdmi_data_mask;
 	wire        hdmi_de_mask, hdmi_vs_mask, hdmi_hs_mask;
@@ -1108,13 +1104,13 @@ assign hdmi_config_done = 1'b1;
 		.vs_in(hdmi_vs),
 		.de_in(hdmi_de),
 		.brd_in(hdmi_brd),
-`else
+`else // SKIP_ASCAL
 		.din(dis_output ? 24'd0 : {hr_out, hg_out, hb_out}),
 		.hs_in(hhs_fix),
 		.vs_in(hvs_fix),
 		.de_in(hde_emu),
 		.brd_in(1'b1),
-`endif
+`endif // SKIP_ASCAL
 		.enable(~LFB_EN),
 
 		.dout(hdmi_data_mask),
@@ -1153,8 +1149,10 @@ assign hdmi_config_done = 1'b1;
 		.de_out(hdmi_de_osd)
 	);
 
+
 wire hdmi_cs_osd;
 csync csync_hdmi(clk_hdmi, hdmi_hs_osd, hdmi_vs_osd, hdmi_cs_osd);
+`endif  // MISTER_DEBUG_NOHDMI
 
 reg [23:0] dv_data;
 reg        dv_hs, dv_vs, dv_de;
@@ -1214,11 +1212,11 @@ end
 wire hdmi_tx_clk;
 `ifndef MISTER_DEBUG_NOHDMI
 	`ifdef CYCLONEV
-	cyclonev_clkselect hdmi_clk_sw ( 
-		.clkselect({1'b1, ~vga_fb & direct_video}),
-		.inclk({clk_vid, hdmi_clk_out, 2'b00}),
-		.outclk(hdmi_tx_clk)
-	);
+		cyclonev_clkselect hdmi_clk_sw ( 
+			.clkselect({1'b1, ~vga_fb & direct_video}),
+			.inclk({clk_vid, hdmi_clk_out, 2'b00}),
+			.outclk(hdmi_tx_clk)
+		);
 	`else // not CYCLONEV
 		`ifdef SKIP_ASCAL
 			assign hdmi_tx_clk = clk_ihdmi;
@@ -1236,50 +1234,51 @@ wire hdmi_tx_clk;
 			.outclk(hdmi_tx_clk)
 		);
 		*/
-	`endif //CYCLONEV
+	`endif // CYCLONEV
 `else // not MISTER_DEBUG_NOHDMI
 	assign hdmi_tx_clk = clk_vid;
 `endif // MISTER_DEBUG_NOHDMI
 
 `ifndef MISTER_DEBUG_NOHDMI
-`ifdef ALTERA
-altddio_out
-#(
-	.extend_oe_disable("OFF"),
-	.intended_device_family("Cyclone V"),
-	.invert_output("OFF"),
-	.lpm_hint("UNUSED"),
-	.lpm_type("altddio_out"),
-	.oe_reg("UNREGISTERED"),
-	.power_up_high("OFF"),
-	.width(1)
-)
-hdmiclk_ddr
-(
-	.datain_h(1'b0),
-	.datain_l(1'b1),
-	.outclock(hdmi_tx_clk),
-	.dataout(HDMI_TX_CLK),
-	.aclr(1'b0),
-	.aset(1'b0),
-	.oe(1'b1),
-	.outclocken(1'b1),
-	.sclr(1'b0),
-	.sset(1'b0)
-);
-`endif // ALTERA
-`ifdef XILINX
-ODDR #(.DDR_CLK_EDGE("OPPOSITE_EDGE"),
-	   .INIT(1'b0),
-	   .SRTYPE("SYNC")
-) ODDR_inst (
-	.C(hdmi_tx_clk),
-	.Q(HDMI_TX_CLK),
-	.CE(1'b1), // 1-bit clock enable input
-	.D1(1'b0), // 1-bit data input (positive edge)
-	.D2(1'b1) // 1-bit data input (negative edge)
-);
-`endif
+	`ifdef ALTERA
+	altddio_out
+	#(
+		.extend_oe_disable("OFF"),
+		.intended_device_family("Cyclone V"),
+		.invert_output("OFF"),
+		.lpm_hint("UNUSED"),
+		.lpm_type("altddio_out"),
+		.oe_reg("UNREGISTERED"),
+		.power_up_high("OFF"),
+		.width(1)
+	)
+	hdmiclk_ddr
+	(
+		.datain_h(1'b0),
+		.datain_l(1'b1),
+		.outclock(hdmi_tx_clk),
+		.dataout(HDMI_TX_CLK),
+		.aclr(1'b0),
+		.aset(1'b0),
+		.oe(1'b1),
+		.outclocken(1'b1),
+		.sclr(1'b0),
+		.sset(1'b0)
+	);
+	`endif // ALTERA
+
+	`ifdef XILINX
+	ODDR #(.DDR_CLK_EDGE("OPPOSITE_EDGE"),
+		.INIT(1'b0),
+		.SRTYPE("SYNC")
+	) hdmiclk_ddr (
+		.C(hdmi_tx_clk),
+		.Q(HDMI_TX_CLK),
+		.CE(1'b1), // 1-bit clock enable input
+		.D1(1'b0), // 1-bit data input (positive edge)
+		.D2(1'b1) // 1-bit data input (negative edge)
+	);
+	`endif // XILINX
 `endif // MISTER_DEBUG_NOHDMI
 
 reg hdmi_out_hs;
@@ -1304,12 +1303,12 @@ always @(posedge hdmi_tx_clk) begin : hdmi_out_block
 	vs <= (~vga_fb & direct_video) ? hdmi_dv_vs   : hdmi_vs_osd;
 	de <= (~vga_fb & direct_video) ? hdmi_dv_de   : hdmi_de_osd;
 	d  <= (~vga_fb & direct_video) ? hdmi_dv_data : hdmi_data_osd;
-`else
+`else // MISTER_DEBUG_NOHDMI
 	hs <= hdmi_dv_hs;
 	vs <= hdmi_dv_vs;
 	de <= hdmi_dv_de;
 	d  <= hdmi_dv_data;
-`endif
+`endif // MISTER_DEBUG_NOHDMI
 
 	hdmi_out_hs <= hs;
 	hdmi_out_vs <= vs;
@@ -1343,11 +1342,12 @@ assign HDMI_TX_D  = hdmi_out_d;
 			.O(vga_tx_clk)
 		);
 		`endif // XILINX
-	`else
+	`else // MISTER_DEBUG_NOHDMI
 		assign vga_tx_clk = clk_vid;
-	`endif
+	`endif // MISTER_DEBUG_NOHDMI
 
 	wire VGA_TX_CLK;
+	`ifdef ALTERA
 	altddio_out
 	#(
 		.extend_oe_disable("OFF"),
@@ -1372,7 +1372,21 @@ assign HDMI_TX_D  = hdmi_out_d;
 		.sclr(1'b0),
 		.sset(1'b0)
 	);
-`endif
+	`endif // ALTERA
+	`ifdef XILINX
+	ODDR #(.DDR_CLK_EDGE("OPPOSITE_EDGE"),
+		.INIT(1'b0),
+		.SRTYPE("SYNC")
+	) vgaclk_ddr (
+		.C(vga_tx_clk),
+		.Q(VGA_TX_CLK),
+		.CE(1'b1), // 1-bit clock enable input
+		.D1(1'b0), // 1-bit data input (positive edge)
+		.D2(1'b1) // 1-bit data input (negative edge)
+	);
+	`endif // XILINX
+
+`endif // MISTER_DUAL_SDRAM
 
 wire [23:0] vga_data_sl;
 wire        vga_de_sl, vga_ce_sl, vga_vs_sl, vga_hs_sl;
@@ -1396,6 +1410,7 @@ scanlines #(0) VGA_scanlines
 
 wire [23:0] vga_data_osd;
 wire        vga_vs_osd, vga_hs_osd, vga_de_osd;
+
 `ifndef DISABLE_VGA
 osd vga_osd
 (
@@ -1448,7 +1463,7 @@ csync csync_vga(clk_vid, vga_hs_osd, vga_vs_osd, vga_cs_osd);
 		.csync_o(yc_cs),
 		.de_o(yc_de)
 	);
-`endif
+`endif // MISTER_DISABLE_YC
 
 `ifndef MISTER_DUAL_SDRAM
 	wire VGA_DISABLE;
@@ -1562,7 +1577,7 @@ pll_audio pll_audio
 	.rst(0),
 	.outclk_0(clk_audio)
 );
-`endif
+`endif //CRG_AUDIO_CLK
 
 wire spdif;
 audio_out audio_out
@@ -1627,7 +1642,7 @@ audio_out audio_out
 
 	alsa alsa
 	(
-		.reset(reset),
+		.reset(reset_req),
 		.clk(clk_audio),
 
 		.ram_address(alsa_address),
@@ -1643,7 +1658,7 @@ audio_out audio_out
 		.pcm_l(alsa_l),
 		.pcm_r(alsa_r)
 	);
-`endif
+`endif // MISTER_DISABLE_ALSA
 
 ////////////////  User I/O (USB 3.0 connector) /////////////////////////
 
@@ -1901,7 +1916,7 @@ module sync_fix
 assign sync_out = sync_in ^ pol;
 
 reg pol;
-always @(posedge clk) begin
+always @(posedge clk) begin : sync_fix_block
 	reg [31:0] cnt;
 	reg s1,s2;
 
