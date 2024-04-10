@@ -137,6 +137,7 @@ module sys_top #(
 	input 	      HPS_FPGA_ENABLE,
 	input         HPS_OSD_ENABLE,
 	input         HPS_IO_ENABLE,
+	output        HPS_IO_WIDE,
 	input         HPS_CORE_RESET,
 	output  [3:0] DEBUG,
 
@@ -330,6 +331,7 @@ wire [15:0] io_dout;
 reg  [15:0] io_dout_sys;
 
 wire [31:0] gp_in = io_dout; //{1'b0, btn_user | btn[1], btn_osd | btn[0], SW[3], 8'd0, io_ver, 1'b0, io_wide, io_dout};
+assign HPS_IO_WIDE = io_wide;
 
 `ifndef MISTER_DEBUG_NOHDMI
 wire io_osd_hdmi = osd_enable & ~fpga_enable;
