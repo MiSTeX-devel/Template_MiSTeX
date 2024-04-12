@@ -235,13 +235,6 @@ wire led_locked;
 //LEDs on main board
 assign LED = ~((led_overtake & led_state) | (~led_overtake & {1'b0,led_locked,1'b0, ~led_p, 1'b0, ~led_d, 1'b0, ~led_u}));
 
-wire btn_r, btn_o, btn_u;
-`ifdef MISTER_DUAL_SDRAM
-	assign {btn_r,btn_o,btn_u} = SW[3] ? {mcp_btn[1],mcp_btn[2],mcp_btn[0]} : ~{SDRAM2_DQ[9],SDRAM2_DQ[13],SDRAM2_DQ[11]};
-`else
-	assign {btn_r,btn_o,btn_u} = ~{BTN_RESET,BTN_OSD,BTN_USER} | {mcp_btn[1],mcp_btn[2],mcp_btn[0]};
-`endif
-
 wire [2:0] mcp_btn;
 wire       mcp_sdcd;
 wire       mcp_en;
