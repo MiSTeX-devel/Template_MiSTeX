@@ -1406,6 +1406,8 @@ scanlines #(0) VGA_scanlines
 wire [23:0] vga_data_osd;
 wire        vga_vs_osd, vga_hs_osd, vga_de_osd;
 
+wire vga_cs_osd;
+
 `ifndef DISABLE_VGA
 osd vga_osd
 (
@@ -1428,7 +1430,6 @@ osd vga_osd
 	.de_out(vga_de_osd)
 );
 
-wire vga_cs_osd;
 csync csync_vga(clk_vid, vga_hs_osd, vga_vs_osd, vga_cs_osd);
 
 `ifndef MISTER_DISABLE_YC
