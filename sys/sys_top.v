@@ -1322,12 +1322,21 @@ assign HDMI_TX_D  = hdmi_out_d;
 	wire vga_tx_clk;
 	`ifndef MISTER_DEBUG_NOHDMI
 		`ifdef ALTERA
+		`ifdef CYCLONEV
 		cyclonev_clkselect vga_clk_sw
 		( 
 			.clkselect({1'b1, ~vga_fb & ~vga_scaler}),
 			.inclk({clk_vid, hdmi_clk_out, 2'b00}),
 			.outclk(vga_tx_clk)
 		);
+		`else // not CYCLONEV
+		altclkctrl vga_clk_sw
+		(
+			.clkselect({1'b1, ~vga_fb & ~vga_scaler}),
+			.inclk({clk_vid, hdmi_clk_out, 2'b00}),
+			.outclk(vga_tx_clk)
+		);
+		`endif // CYCLONEV
 		`endif // ALTERA
 		`ifdef XILINX
 		BUFGMUX vga_clk_mux (
