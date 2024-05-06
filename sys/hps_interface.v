@@ -20,6 +20,10 @@ module hps_interface
     input reset     // not used
 );
 
+localparam SPI_BYTES = 32;
+localparam SPI_BITS = SPI_BYTES * 8;
+localparam SPI_CNT_BITS = $clog2(SPI_BITS);
+
 // spi_clk is used to sample mosi and generate miso
 // sys_clk is used to generate io_strobe (for 1 sys_clk period)
 // This allow for slow sys_clk w.r.t. spi_clk
@@ -43,25 +47,25 @@ always @(posedge sys_clk) begin
 end
 
 // count data bits and ouput data to master on spi_clk rising edge
-reg [3:0]  bit_cnt;
+reg [SPI_CNT_BITS-1:0]  bit_cnt;
 always @(posedge spi_clk or posedge spi_cs) begin
     if (spi_cs) begin
       bit_cnt <= 0;
     end else begin
       bit_cnt <= bit_cnt + 1;
-      spi_miso = gp_in[15 - bit_cnt];
+      spi_miso = (bit_cnt <= 15) ? gp_in[15 - bit_cnt] : 1'b0;
     end
 end
 
 // latch data from master on spi_clk falling edge
 // and signal word complete on 16th bit
-reg [15:0] word_in;
-reg        word_complete;
+reg [SPI_BITS-1:0] word_in;
+reg                word_complete;
 always @(negedge spi_clk or posedge spi_cs) begin
     if (spi_cs) begin
       word_complete <= 0;
     end else begin
-      word_in <= { word_in[14:0], spi_mosi };
+      word_in <= { word_in[SPI_BITS-2:0], spi_mosi };
 
       if (bit_cnt == 0) begin
         word_complete <= 1;
@@ -82,7 +86,7 @@ always @(posedge sys_clk) begin
   word_complete_d2 <= word_complete_d1;
   word_complete_d3 <= word_complete_d2;
   if ((word_complete_d2 == 0) & (word_complete_d1 == 1)) begin
-    word_out <= word_in;
+    word_out <= word_in[SPI_BITS-1:SPI_BITS-16];
   end	
 end
 
