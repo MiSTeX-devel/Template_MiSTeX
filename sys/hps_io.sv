@@ -425,7 +425,8 @@ always@(posedge clk_sys) begin : uio_block
 				// flag that download begins
 				'h0X17: begin
 							sd_buff_dout <= io_din[DW:0];
-							b_wr <= 1;
+							// b_wr <= 1;
+							if (byte_cnt > 1) b_wr <= 1;  // work around ignore first data from fpga_spi_fast_block_write_8
 						end
 
 				// reading sd card write data
